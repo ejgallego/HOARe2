@@ -1,4 +1,4 @@
-Welcome to the HOARe² compiler distribution!
+# Welcome to the HOARe² compiler distribution!
 
 This compiler implements the type system described in the paper:
 
