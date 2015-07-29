@@ -1,0 +1,13 @@
+import "bool"    "Bool"       in
+
+fun (flip : M { b :: bool | b<1> = b<2> }) ->
+
+let b_eq : Pi (x : bool). { l :: bool | l<1> = l<2> } =
+   fun (x : bool) -> x in
+
+let f : M[1.0] { b :: bool | b<1> = b<2> } =
+   mlet x = flip    in
+   mlet y = flip    in
+   munit (b_eq (andb x y))
+in
+f

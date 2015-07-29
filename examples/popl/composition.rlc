@@ -1,0 +1,46 @@
+(* Trusted types for advanced composition. We don't know how to verify these,
+but we can express the types. *)
+
+open int .Int       in
+
+open real.FromInt   in
+open real.PowerReal in
+open real.Square    in
+
+open list.List      in
+open list.Length    in
+
+open dp.DP          in
+open extra.Math     in
+
+(* For now, specialize to databases that are histograms. Any database type with
+a metric will work though. Also specialize to mechanisms returning reals, this
+should also be made polymorphic. *)
+
+fun (adv_iter : Pi (alpha : real)
+                   (delta : { d : real | d <=. 0.5 })
+                   (k : int)
+                   (f : Pi (r : real)
+                           (db :: { d :: real list | d_lr d<1> d<2> <=. 1.0 }).
+                        M[(pow alpha (1.0 /. (sqrt 8.0 *. (from_int k) *. (log 1.0 /. delta))))]
+                         { r :: real | r<1> = r<2> })
+                   (init : real).
+                 M[alpha, delta] { r :: real | r<1> = r<2> })
+
+(* Can also define advanced composition for folds. Specialize to folds over
+integers producing real numbers; again, should be made polymorphic. *)
+
+   (adv_fold : Pi (alpha : real)
+                  (delta : { d : real | d <=. 0.5 })
+                  (k : int)
+                  (f : Pi (l : int)
+                          (r : real)
+                          (db :: { d :: real list | d_lr d<1> d<2> <=. 1.0 }).
+                       M[(pow alpha (1.0 /.  (sqrt 8.0 *. (from_int k) *. (log 1.0 /. delta))))]
+                        { r :: real | r<1> = r<2> })
+                  (folded : { fd : int list | (length fd) = k })
+                  (seed : real).
+               M[alpha, delta] { r :: real | r<1> = r<2> })
+->
+
+adv_fold

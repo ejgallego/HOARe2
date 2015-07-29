@@ -1,0 +1,23 @@
+let lambda : real = 1.0 in
+let tau : real = 1.0 in
+
+fun (d_r : Pi (r1 : real) (r2 : real). real) ->
+
+let def sigSens (s1 : real)
+                (s2 : real) : prop =
+  d_r s1 s2 <=. tau /\
+  s1 <=. lambda /\
+  s2 <=. lambda
+in
+
+fun (search : Pi (i :: real)
+                 (sig : { sig : Pi (a' :: real)
+                                   (a   : real) .
+                                   { s :: real | sigSens s<1> s<2> }
+                              | sig i<1> i<1> = sig i<2> i<2>
+                        } ).
+                 { res :: real | res<1> = res<2> })
+->
+
+let m : { m : real | m = 1.0 } = 1.0
+in m

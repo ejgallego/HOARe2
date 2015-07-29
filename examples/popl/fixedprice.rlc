@@ -1,0 +1,13 @@
+(* Fixed price auction *)
+open comp.Bool in
+
+let fixedprice (v : real)
+               (b :: {b :: real | b<1> = v})
+               (p : real)
+              : { u :: real | u<1> >=. u<2> } =
+
+  async match ge_real b p with [{ u :: real | u<1> >=. u<2> }]
+  | True  -> v -. p
+  | False -> 0.0
+
+in fixedprice

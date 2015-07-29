@@ -1,0 +1,148 @@
+open nat.Nat            in
+open int.Int            in
+
+
+open list.List          in
+open list.Length        in
+
+open dp.DP              in
+
+(* Datatypes and hints *)
+open dualquery.Types    in
+open dualquery.SmtHints in
+
+open extra.Math         in
+
+(* Normal list functions? Why3 has them too, but they seem to have implicit
+   arguments and not sure how to use them... *)
+
+(* EG: They are meant to be cloned. See examples in:
+
+   http://why3.lri.fr/stdlib-0.83/algebra.html
+
+   I would be easier to define ours using HO types I guess...
+*)
+
+let rec map (l :: {l :: list nat | l<1> = l<2> })
+            (f : Pi (re : nat). real)
+            { struct l }
+      : list real =
+  match l with[list real]
+  | Nil -> Nil
+  | Cons x xs -> Cons (f x) (map xs f)
+in
+
+let rec sum (l :: {l :: list real | l<1> = l<2> })
+            (seed : real)
+            { struct l }
+      : real =
+  match l with[real]
+  | Nil       -> seed
+  | Cons x xs -> x +. sum xs seed
+in
+
+(* Specialize to when the range is the query class, could be polymorphic *)
+fun (expMech : Pi (sens  :: { s :: real | s<1> = s<2> /\ 0.0 <=. s<1> })
+                  (eps   :: { e :: real | e<1> = e<2> /\ 0.0 <=. e<1> })
+                  (db    :: { db :: list real | d_lr db<1> db<2> <=. 1.0 })
+                  (range :  queryclass)
+                  (score :  Pi (db' :: { db' :: list real | d_lr db'<1> db'<2> <=. 1.0 })
+                               (q : query).
+                               { s :: real | d_r s<1> s<2> <=. sens<1> }).
+                  M[eps<1> *. sens<1>] { q :: query | q<1> = q<2> } )
+->
+
+let buildquality (numsamples :: { ns :: nat | ns<1> = ns<2>} )
+                 (samples    :: { l :: list nat | length l<1> = nat_to_int numsamples<1> /\ l<1> = l<2> } )
+                 (eval       :  Pi (db :: { db :: list real | d_lr db<1> db<2> <=. 1.0 })
+                                   (q : query).
+                                   { r :: real | d_r r<1> r<2> <=. 1.0 })
+                 (evalrec    :  Pi (q : query)
+                                   (re : nat). real)
+                 (db         :: { db :: list real | d_lr db<1> db<2> <=. 1.0 })
+                 (q          :   query)
+               : { s :: real | d_r s<1> s<2> <=. nat_to_real numsamples<1> } =
+
+  (* JH: The sensitivity of this final expression in db is numsamples
+   * sensitivity of (eval db q), which we have set to be 1. *)
+  (sum (map samples (evalrec q)) 0.0) -. (nat_to_real numsamples) *. (eval db q)
+in
+
+let def eq_cut1 (iter :: nat)
+                (l :: { l :: list query | l<1> = l<2> /\ length l<1> = nat_to_int iter<1> }) :
+                { l :: list query | l<1> = l<2> /\ length l<1> = nat_to_int iter<1> } = l
+in
+
+let def eq_cut2 (iter :: nat)
+                (l :: { l :: list nat | l<1> = l<2> /\ length l<1> = nat_to_int iter<1> }) :
+                { l :: list nat | l<1> = l<2> /\ length l<1> = nat_to_int iter<1> } = l
+in
+
+
+let rec sampleN (iter  :: { i   :: nat  | i<1> = i<2> })
+                (eps   :: { eps :: real | 0.0 <=. eps<1> /\ eps<1> = eps<2> } )
+                (distr :  M[eps<1>] { q :: query | q<1> = q<2> })
+                { struct iter }
+      : M [eps<1> *. nat_to_real iter<1> ]
+          { l :: list query | l<1> = l<2> /\
+                              length l<1> = nat_to_int iter<1> 
+          } =
+
+  match iter with[ M[ eps<1> *. nat_to_real iter<1> ]
+                     { l :: list query | l<1> = l<2> /\ length l<1> = nat_to_int iter<1> } ]
+
+  | Zero       -> munit (eq_cut1 iter Nil)
+  | Succ iter' -> mlet samples = sampleN iter' eps distr in
+                  mlet sample  = distr                   in
+                  munit (eq_cut1 iter (Cons sample samples))
+in
+
+let rec dualquery
+     (iter    :: { i   :: nat  | i<1> = i<2>} )
+     (eps     :: { eps :: real | eps<1> = eps<2> /\ 0.0 <=. eps<1> } )
+     (db      :: { db :: list real | d_lr db<1> db<2> <=. 1.0 })
+     (qs      :  queryclass)
+     (eval    :  Pi (db :: { db :: list real | d_lr db<1> db<2> <=. 1.0 })
+                    (q : query).
+                    { r :: real | d_r r<1> r<2> <=. 1.0 })
+     (evalrec : Pi (q : query)
+                   (re : nat). real)
+     (opt     :  Pi (qs : list query). nat)
+     (numsamples : nat)
+     { struct iter }
+   : M[ eps<1> *. nat_to_real numsamples *.
+                  nat_to_real iter<1>    *.
+                  nat_to_real iter<1>
+     ]
+     { l :: list nat | l<1> = l<2> /\
+                       length l<1> = (nat_to_int iter<1>)
+     } =
+
+  (* JH: I think so. Here is the argument: there are iter iterations, each
+     iteration we sample numsample times. The cost for each sample is the base cost
+     for the exponential mechanism (say eps) times the sensitivity of the score
+     function.  For iteration i, the sensitivity is i, and the largest i can be is
+     iter. Not sure what the best way is to handle this...we may need some
+     subtyping to turn a i-sensitive score function into an iter-sensitive score
+     function...*)
+
+  (* a = exp^(eps * numsamples * iter * iter) /\ *)
+  let def a :: real = eps *. nat_to_real numsamples *.
+                             nat_to_real iter       *.
+                             nat_to_real iter       in
+
+  match iter with[ M[ a<1> ] { l :: list nat | l<1> = l<2> /\ length l<1> = nat_to_int iter<1> } ]
+  | Zero        -> munit (eq_cut2 iter Nil)
+  | Succ iter'  ->
+    mlet curdb   = dualquery iter' eps db qs eval evalrec opt numsamples      in
+    let quality  (db' :: { db' :: list real | d_lr db'<1> db'<2> <=. 1.0 })
+                 (q : query)
+               : { s :: real | d_r s<1> s<2> <=. nat_to_real iter<1> } =
+      buildquality iter' curdb eval evalrec db' q
+    in
+    mlet newqueries = sampleN numsamples (eps *. nat_to_real iter)
+                                         (expMech (nat_to_real iter) eps db qs quality)  in
+    let newrecord : nat  = opt newqueries                                                in
+    munit (eq_cut2 iter (Cons newrecord curdb))
+in
+dualquery

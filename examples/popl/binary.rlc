@@ -1,0 +1,118 @@
+(* Binary mechanism *)
+open proj.Projs           in
+
+open nat.Nat              in
+
+open int.Int              in
+open int.Power            in
+open int.ComputerDivision in
+
+open real.FromInt         in
+
+open list.List            in
+open list.Length          in
+open list.Append          in
+
+open dp.DP                in
+
+open binary.SmtHints      in
+
+open extra.Math           in
+
+(* Cut *)
+let def eq_v (x :: {x :: list (list real)  | x<1> = x<2>}) :
+  {l :: list (list real) | l<1> = l<2> } = x
+in
+
+(* Positive epsilon *)
+fun (eps : { eps : real | 0.0 <=. eps } )
+
+    (* The laplacian primitive *)
+    (lap : Pi (e : real)
+              (x :: real).
+               M [e *. d_r x<1> x<2>]
+                 { r :: real | r<1> = r<2> })
+
+    (split : Pi (l :: { x ::  list real | adjacent x<1> x<2> /\
+                                          length x<1> >= 2 /\
+                                          length x<2> >= 2 } ).
+                { r :: (list real * list real) |
+                    (* Ummm *)
+                    length (fst r<1>) = div (length l<1>) 2 /\
+                    length (snd r<1>) = div (length l<1>) 2 /\
+                    length (fst r<2>) = div (length l<2>) 2 /\
+                    length (snd r<2>) = div (length l<2>) 2 /\
+
+                    (* The combined distances are less than equal the original one *)
+                    d_lr (fst r<1>) (fst r<2>) +. d_lr (snd r<1>) (snd r<2>) <=.
+                    d_lr l<1> l<2> /\
+
+                    (* And the splitted lists are adjacent *)
+                    adjacent (fst r<1>) (fst r<2>) /\
+                    adjacent (snd r<1>) (snd r<2>)
+                 } )
+->
+
+(* Sum function and distance preservation *)
+let rec list_sum (l :: { l :: list real | adjacent l<1> l<2> } )
+                 { struct l }
+      : { r :: real | d_lr l<1> l<2> = d_r r<1> r<2> } =
+    match l with [ { r :: real | d_lr l<1> l<2> = d_r r<1> r<2> } ]
+    | Nil       -> 0.0
+    | Cons x xs -> x +. list_sum xs
+in
+
+let rec binary (n : { n : int | n >= 0 })
+               (l :: {l :: list real | adjacent l<1> l<2> /\
+                                       length l<1> = power 2 n /\
+                                       length l<2> = power 2 n })
+      (* No struct annotation = forced to be in the C monad *)
+               (* { struct l } *)
+      : C M [ eps *. from_int (n + 1) *. d_lr l<1> l<2> ]
+            {r :: list (list real) | r<1> = r<2> } =
+
+    match l with [
+      C M [ eps *. from_int (n + 1) *. d_lr l<1> l<2> ]
+      {r :: list (list real) | r<1> = r<2> }
+    ]
+    | Nil -> cunit (munit (eq_v Nil))
+    | Cons x xs ->
+
+      match xs with [
+       C M [ eps *. from_int (n + 1) *. (d_lr l<1> l<2>) ]
+        {r :: list (list real) | r<1> = r<2> }
+      ]
+      | Nil -> cunit (
+          mlet sum = lap eps x in
+          munit (eq_v (Cons (Cons sum Nil) Nil)))
+
+      | Cons y ys ->
+
+        match (split l) with [
+          C M [ from_int (n + 1) *. (d_lr l<1> l<2>) *. eps ]
+              {r :: list (list real) | r<1> = r<2> }
+        ]
+        | (left, right) ->
+            have : { length l<1> >= 2 /\ length l<2> >= 2 }       in
+
+            (* Requires EProver *)
+            have : { length left<1>  = div (length l<1>) 2 /\
+                     length left<2>  = div (length l<2>) 2 /\
+                     length right<1> = div (length l<1>) 2 /\
+                     length right<2> = div (length l<2>) 2
+                   }                                              in
+            clet cleftN  = binary (n - 1) left                    in
+            clet crightN = binary (n - 1) right                   in
+            cunit (
+              (* Requires EProver and CVC3, see the *_solved.why file for the proof *)
+              trust (m_ass) res : M [ from_int (n + 1) *. d_lr l<1> l<2> *. eps ]
+                                    {r :: list (list real) | r<1> = r<2> } =
+
+             mlet sum     = lap eps (list_sum l)                  in
+             mlet leftN   = cleftN                                in
+             mlet rightN  = crightN                               in
+             munit (eq_v (Cons (Cons sum Nil) (leftN ++ rightN))) in
+             res
+            )
+
+in binary

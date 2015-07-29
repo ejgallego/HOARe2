@@ -1,0 +1,6 @@
+theory Action
+
+  (* type of actions, abstract. For a specific choice we can use bool. *)
+  type act
+
+end

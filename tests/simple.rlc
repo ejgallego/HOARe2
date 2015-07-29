@@ -1,0 +1,2 @@
+let id : Pi (x :: {z :: float | z = 3.0}). float = lambda (x :: float). x in
+id 3.0

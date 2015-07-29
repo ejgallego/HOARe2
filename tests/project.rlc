@@ -1,0 +1,19 @@
+import "bool" "Bool" in
+import "proj" "Projs" in
+
+(* This illustrates the problem of having first-class non-relational
+   bindings *)
+
+let f (x : real) :
+    { r : (real * real) | fst r = snd r } = (x, x)
+in
+
+let p (x :: {x :: real | x<1> = x<2>})
+    : {r :: real | r<1> = r<2> } = x
+in
+
+let m (e :: real) : {r :: real | e<1> = r<2>} =
+  match f e with [real]
+  | (x, y) -> p x
+in
+3.0

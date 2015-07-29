@@ -1,0 +1,361 @@
+open int.Int        in
+
+open list.List      in
+open list.Length    in
+open list.Mem       in
+open list.NthNoOpt  in
+open list.Permut    in
+
+open proj.Projs     in
+open bool.Bool      in
+
+open nat.Nat        in
+
+open dp.DP          in
+open hkm.HKM        in
+
+(* Shift list refinements outside: *)
+let rec castDistPres (mu : M { n :: ty | n<1> = n<2> })
+                     (l : list { f : Pi (t :: { t :: ty | t<1> = t<2> }).
+                                     M ty
+                               | distPres mu f } )
+                     {struct l}
+                   : { ret : list (Pi (t : ty). M ty)
+                     | allPres mu ret /\ length ret = length l } =
+  match l with[
+    { ret : list (Pi (t : ty). M ty)
+    | allPres mu ret /\ length ret = length l }
+  ]
+  | Nil -> Nil
+  | Cons x xs -> Cons x (castDistPres mu xs)
+in
+
+(* Assertions *)
+
+let def rsmdetPost
+        (tr : ty)
+        (report : ty)
+        (wt : Pi (t : ty) (s : ty) . real)
+        (outputs  : (ty * real))
+        (outputs' : (ty * real))
+        : prop =
+  let surr  : ty   = fst outputs  in
+  let surr' : ty   = fst outputs' in
+  let p     : real = snd outputs  in
+  let p'    : real = snd outputs' in
+  report = tr =>
+  wt tr surr  -. p >=.
+  wt tr surr' -. p'
+in
+
+let def coinsPred
+        (c1 : (list ty * list ty * nat))
+        (c2 : (list ty * list ty * nat))
+        (pm : nat)
+        (m  : nat)
+        : prop =
+  c1 = c2 /\
+  (length (fst3 c1)) = (nat_to_int pm) /\
+  (length (fst3 c2)) = (nat_to_int pm) /\
+  (length (snd3 c1)) = (nat_to_int m) /\
+  (length (snd3 c2)) = (nat_to_int m) /\
+  (nat_to_int (thd3 c1)) < (nat_to_int m) /\
+  (nat_to_int (thd3 c2)) < (nat_to_int m)
+in
+
+
+
+fun (m : { m : nat | 1 <= nat_to_int m }) (* Number of replicas *)
+
+    (n : { n : nat | 1 <= nat_to_int n }) (* Number of bidders *)
+
+    (predm : { i : nat | Succ i = m }) (* Convenience *)
+
+    (predn : { i : nat | Succ i = n }) (* Convenience *)
+
+    (unif   : Pi (n : nat). M { s :: nat
+                              | s<1> = s<2>
+                                /\ 0 <= (nat_to_int s<1>)
+                                /\ (nat_to_int s<1>) < (nat_to_int n) })
+
+    (* repeat with relational type. *)
+    (* repeat in why3 has no refinements. *)
+    (repeatM : Pi (n : nat) (mu :: M { s :: ty | s<1> = s<2> }). { res ::
+               M { ss :: list ty |  ss<1> = ss<2> /\ (length ss<1> = (nat_to_int n)) }
+               |  res<1> = seqM (repeat n mu<1>)
+               /\ res<2> = seqM (repeat n mu<2>)
+               })
+
+    (mu     : M { n :: ty | n<1> = n<2> })
+
+    (alg    : Pi (ts : list ty). oc)
+
+    (value  : Pi (t : ty) (o : oc). real)
+
+    (expect1 : Pi (mu :: M { c :: (list ty * list ty * nat)
+                           | coinsPred c<1> c<2> predm m })
+                  (f  :: { f :: Pi ( fr :: { c :: (list ty * list ty * nat)
+                                           | coinsPred c<1> c<2> predm m }) .
+                                real
+                         | all (fun (r : (list ty * list ty * nat)) ->
+                             coinsPred r r predm m =>
+                             f<1> r >=. f<2> r) }).
+                  { e :: real | e<1> >=. e<2> })
+
+    (expect2 : Pi (mu :: M real). real)
+
+    (* Takes a sz, function nat -> A, maps it over [0 .. sz - 1]. *)
+    (* Leave in Hoare2, not sure how to encode in why3? *)
+    (mapIdxMoves : Pi (sz : int)
+                      (f : Pi (idx : { i : nat | (nat_to_int i) < sz }).
+                      { f' : Pi (ot :: { ot :: ty | ot<1> = ot<2> }).
+                             M ty
+                      | distPres mu f' }).
+                 { ret : list { l : Pi (ot :: { ot :: ty | ot<1> = ot<2> }).
+                                    M ty
+                              | distPres mu l }
+                 | sz >= 0 => length ret = sz })
+
+    (* Takes a list A, function int -> A -> B. *)
+    (* *)
+    (mapWithIdxValue : Pi (xs :: { xs ::  list ty | length xs<1> = length xs<2> })
+                          (f : Pi (idx : int) (x : ty). Pi (a : list ty). real).
+              { o :: list (Pi (a : list ty). real)
+                  |  length o<1> = length o<2>
+                  /\ length o<1> = length xs<1>
+                  /\ all (fun (idx : int) ->
+                        (0 <= idx /\ idx < length xs<1>) =>
+                        nth idx o<1> = f idx (nth idx xs<1>))
+                        /\
+                     all (fun (idx : int) ->
+                        (0 <= idx /\ idx < length xs<1>) =>
+                        nth idx o<2> = f idx (nth idx xs<2>))
+                        /\
+                     all (fun (idx : int) ->
+                        (0 <= idx /\ idx < length xs<1>) =>
+                        differAt (int_to_nat idx) xs<1> xs<2> =>
+                        allBut (int_to_nat idx) o<1> = allBut (int_to_nat idx) o<2>
+                        )})
+    (* *)
+->
+
+(* Should put these outside function, but a bit lazy. Use m. *)
+(* Cut for coins *)
+let def c_eq (x :: { c :: (list ty * list ty * nat)
+                   | coinsPred c<1> c<2> predm m })
+          :     { c :: (list ty * list ty * nat)
+                | coinsPred c<1> c<2> predm m } = x
+in
+
+let def vcgTruth
+        (predm : nat)
+        (reps  : list ty)
+        (reps' : list ty)
+        (o  : (list ty * list real))
+        (o' : (list ty * list real))
+        (wt : Pi (r : ty) (s : ty). real)
+        : prop =
+  all (fun (i : int) ->
+      (0 <= i /\ i <= (nat_to_int predm)
+      /\
+      (differAt (int_to_nat i) reps reps')) =>
+      wt (nth i reps) (nth i (fst o)) -. (nth i (snd o))
+      >=.
+      (* Not a typo! reps, not reps'. *)
+      wt (nth i reps) (nth i (fst o')) -. (nth i (snd o')))
+in
+
+let def expwts (idx : nat)
+               (t : ty)
+               (s : ty) : real =
+  expect2 (
+    mlet others = repeatM predn mu in
+    munit (value t (alg (insertAt idx s others)))
+  )
+in
+
+let makePrefs (reps :: { r :: list ty | length r<1> = length r<2>
+                                         /\ length r<1> = (nat_to_int m) })
+              (wts  : Pi (r : ty) (s : ty). real) :
+              { pfs :: list Pi (a :: list ty). real
+              | length pfs<1> = length pfs<2>
+              /\ length pfs<1> = (nat_to_int m)
+              /\ all (fun (i : int) ->
+                  all (fun (alloc : list ty) ->
+                    (0 <= i /\ i <= (nat_to_int predm)
+                    /\
+                    nat_to_int m = length alloc) =>
+                    (* EG: @ is a temporary fix until the uncurrier gets smarter *)
+                    (nth i pfs<1> @ alloc) = wts (nth i reps<1>) (nth i alloc)))
+                    /\
+                 all (fun (i : int) ->
+                  all (fun (alloc : list ty) ->
+                    (0 <= i /\ i <= (nat_to_int predm)
+                    /\
+                    nat_to_int m = length alloc) =>
+                    (nth i pfs<2> @ alloc) = wts (nth i reps<2>) (nth i alloc)))
+                    /\ 
+                 all (fun (i : int) ->
+                  all (fun (alloc : list ty) ->
+                    (0 <= i /\ i <= (nat_to_int predm)
+                    /\
+                    nat_to_int m = length alloc) =>
+                    differAt (int_to_nat i) reps<1> reps<2> =>
+                    allBut (int_to_nat i) pfs<1> = allBut (int_to_nat i) pfs<2>))
+              } =
+  mapWithIdxValue reps
+    (fun (idx : int) ->
+      (fun (rep : ty) ->
+        (fun (alloc : list ty) ->
+          wts rep (nth idx alloc)
+        )))
+in
+
+(* Multiple bidders/goods version of VCG. For adding more replicas. *)
+let vcg (reps :: { r :: list ty | length r<1> = length r<2>
+                                        /\ length r<1> = (nat_to_int m) } )
+        (surs :: { s :: list ty | s<1> = s<2> /\ length s<1> = (nat_to_int m) })
+
+        (wts  : Pi (r : ty) (s : ty). real)
+
+        : { o :: (list ty * list real)
+          | vcgTruth predm reps<1> reps<2> o<1> o<2> wts
+          /\ permut surs<1> (fst o<1>) /\ permut surs<2> (fst o<2>) } =
+  let range :: { r :: list (list ty)
+               | r<1> = r<2>
+               /\ allPerms surs<1> r<1>
+               /\ allPerms surs<2> r<2>
+               /\ length r<1> > 0 } =
+    enumPerms surs in
+
+  let prefs :: { pfs :: list (Pi (a :: list ty). real)
+               | all (fun (i : int) ->
+                   all (fun (alloc : list ty) ->
+                     (0 <= i /\ i <= nat_to_int predm
+                     /\
+                     nat_to_int m = length alloc) =>
+                     nth i pfs<1> @ alloc = wts (nth i reps<1>) (nth i alloc)))
+                     /\
+                 all (fun (i : int) ->
+                   all (fun (alloc : list ty) ->
+                     (0 <= i /\ i <= nat_to_int predm
+                     /\
+                     nat_to_int m = length alloc) =>
+                     nth i pfs<2> @ alloc = wts (nth i reps<2>) (nth i alloc)))
+               } = makePrefs reps wts in
+
+  let alloc :: { a :: list ty
+               | mem a<1> range<1> /\ mem a<2> range<2> /\
+                 all (fun (x :: list ty) ->
+                   (mem x<1> range<1> =>
+                   (sumFuns prefs<1> a<1> >=. sumFuns prefs<1> x<1>)))
+                   /\
+                 all (fun (x :: list ty) ->
+                   (mem x<2> range<2> =>
+                   (sumFuns prefs<2> a<2> >=. sumFuns prefs<2> x<2>))
+               )} = findMax (sumFuns1 prefs) range in
+
+  let prices :: { ps :: list real
+                | all (fun (i : nat) ->
+                    nat_to_int i <= nat_to_int predm =>
+                      (nth (nat_to_int i) ps<1>) =
+                        sumFuns (allBut i prefs<1>)
+                          (findMax (sumFuns1 (allBut i prefs<1>)) range<1>)
+                        -.
+                        sumFuns (allBut i prefs<1>) alloc<1>)
+                      /\
+                  all (fun (i : nat) ->
+                    nat_to_int i <= nat_to_int predm =>
+                      (nth (nat_to_int i) ps<2>) =
+                        sumFuns (allBut i prefs<2>)
+                          (findMax (sumFuns1 (allBut i prefs<2>)) range<2>)
+                        -.
+                        sumFuns (allBut i prefs<2>) alloc<2>)
+                } =
+    mapIdxPrices (nat_to_int m) (fun (i : nat) ->
+             sumFuns (allBut i prefs) (findMax (sumFuns1 (allBut i prefs)) range)
+             -.
+             sumFuns (allBut i prefs) alloc
+           ) in
+  (alloc, prices)
+in
+
+let rsmcoins : M { c :: (list ty * list ty * nat)
+                 | coinsPred c<1> c<2> predm m } =
+  mlet rs = repeatM predm mu in
+  mlet ss = repeatM m mu in
+  mlet i = unif m in
+  munit (c_eq (rs, ss, i))
+in
+
+let rsmdet
+  (idx : nat)
+  (coins :: { c :: (list ty * list ty * nat)
+            | coinsPred c<1> c<2> predm m })
+  (truety :: { t :: ty | t<1> = t<2> })
+  (report :: ty) :
+  { res :: (ty * real) |
+  (nat_to_int idx) <= (nat_to_int predn) =>
+    rsmdetPost truety<1> report<1> (expwts idx) res<1> res<2> } =
+  match coins with [
+    { res :: (ty * real) | rsmdetPost truety<1> report<1> (expwts idx) res<1> res<2> } 
+  ]
+  | (rs, ss, i) ->
+      let vcgin ::
+        { replicas :: list ty | differAt i<1> replicas<1> replicas<2>
+                                /\ (nth (nat_to_int i<1>) replicas<1>) = report<1>
+                                /\ (nth (nat_to_int i<2>) replicas<2>) = report<2>
+                                /\ (length replicas<1>) = (length replicas<2>)
+                                /\ (length replicas<1>) = (nat_to_int m) 
+                                /\ replicas<1> = insertAt i<1> report<1> rs<1>
+                                /\ replicas<2> = insertAt i<2> report<2> rs<2> } =
+        insertAt i report rs in
+      let vcgout ::
+        { o :: (list ty * list real)
+        | vcgTruth predm vcgin<1> vcgin<2> o<1> o<2> (expwts idx)
+          /\ permut ss<1> (fst o<1>) /\ permut ss<2> (fst o<2>) } =
+        vcg vcgin ss (expwts idx) in
+      match vcgout with [
+        { res :: (ty * real) | rsmdetPost truety<1> report<1> (expwts idx) res<1> res<2> } 
+      ]
+      | (surs, prices) -> (nth (nat_to_int i) surs, nth (nat_to_int i) prices)
+in
+
+let others (idx : { i : nat | (nat_to_int i) <= (nat_to_int predn) })
+           : { f : Pi (ot :: { ot :: ty | ot<1> = ot<2> }).
+                   M ty
+             | distPres mu f } =
+  fun (ot :: { ot :: ty | ot<1> = ot<2> }) ->
+    mlet coins = rsmcoins in
+    let trans :: (ty * real) = rsmdet idx coins ot ot in
+    munit (fst trans)
+in
+
+let bic (othermoves : { ms : list (Pi (t :: ty). M ty)
+                      | allPres mu ms /\ length ms = (nat_to_int predn) })
+        (truety :: { t :: ty | t<1> = t<2> })
+        (report :: { b :: ty | b<1> = truety<1> }) :
+        { u :: real | u<1> >=. u<2> } =
+  expect1 rsmcoins
+    (fun (coins :: { c :: (list ty * list ty * nat)
+                   | coinsPred c<1> c<2> predm m }) ->
+      let mytrans ::
+        { res :: (ty * real) | rsmdetPost truety<1> report<1> (expwts Zero) res<1> res<2> }
+      = rsmdet Zero coins truety report in
+      let mysur :: { s :: ty | s<1> = (fst mytrans<1>) /\ s<2> = (fst mytrans<2>) } = 
+        fst mytrans in
+      let myprice :: { p :: real | p<1> = (snd mytrans<1>) /\ p<2> = (snd mytrans<2>) } = 
+        snd mytrans in
+      expect2 (
+        mlet othersurs = seqM (mapHO (sampleAndApply mu) othermoves) in
+        munit (value truety (alg (Cons mysur othersurs)))
+      ) -. myprice
+    )
+in
+
+bic
+  (castDistPres mu
+    (mapIdxMoves (nat_to_int predn)
+      (fun (idx : { i : nat | (nat_to_int i) < (nat_to_int predn) }) ->
+        others (Succ idx)
+      )))

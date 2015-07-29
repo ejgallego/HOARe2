@@ -1,0 +1,49 @@
+theory Bug
+
+  use import list.List
+  use import real.RealInfix
+  use import real.Abs as RAbs
+
+  function d_r (x1 x2 : real) : real = RAbs.abs (x1 -. x2)
+
+  function l_sum (l : list real) : real = match l with
+    | Nil       -> 0.0
+    | Cons x xs -> RAbs.abs x +. l_sum xs
+  end
+
+  function d_lr (l1 l2 : list real) : real  = match l1,l2 with
+    | Nil, Nil             -> 0.0
+    | Cons x xs, Cons y ys -> d_r x y +. d_lr xs ys
+    | Nil, Cons x xs       -> l_sum (Cons x xs)
+    | Cons x xs, Nil       -> l_sum (Cons x xs)
+  end
+
+  predicate adjacent (l1 l2 : list real) = match l1,l2 with
+    | Nil, Nil -> true
+    | Cons x1 l1, Cons x2 l2 -> (d_r x1 x2 <=. 1.0 /\ l1 = l2) \/
+                                (x1 = x2 /\ adjacent l1 l2)
+    | _ -> false
+  end
+
+  lemma d2: forall l1 l2 : list real. 0.0 <=. d_lr l1 l2
+
+  lemma d3: forall l1 l2 : list real.
+        l1 = l2 ->
+        d_lr l1 l2 = 0.0
+
+  lemma a1: forall l1 l2 : list real.
+        adjacent l1 l2 ->
+        d_lr l1 l2 <=. 1.0
+
+  lemma r1: forall e0 k  : real.
+        0.0 <=. e0  ->
+        0.0 <=. k   ->
+        k   <=. 1.0 ->
+        e0 *. k <=. e0
+
+  goal bug : forall e x1 x2 : real, xs1 xs2 : list real.
+                    0.0 <=. e ->
+                    adjacent (Cons x1 xs1) (Cons x2 xs2) ->
+                    e *. d_r x1 x2 <=. 0.0
+
+end

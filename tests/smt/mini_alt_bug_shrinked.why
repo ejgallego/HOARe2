@@ -1,0 +1,52 @@
+type 'a list
+
+logic Nil  : 'a list
+logic Cons : 'a, 'a list -> 'a list
+
+logic abs : real -> real
+axiom abs_def : (forall x:real. ((0.0 <= x) -> (abs(x) = x)))
+
+function d_r (x1: real, x2: real) : real = abs((x1 - x2))
+
+logic d_lr : real list, real list -> real
+axiom d_lr_def : (d_lr((Nil : real list), (Nil : real list)) = 0.0)
+axiom d_lr_def3 :
+  (forall x:real. forall x1:real list.
+  (forall x2:real. forall x3:real list.
+  (d_lr(Cons(x2, x3), Cons(x, x1)) = (d_r(x2, x) + d_lr(x3, x1)))))
+
+logic adjacent : real list, real list -> prop
+
+axiom adjacent_def : adjacent ((Nil : real list), (Nil : real list))
+
+axiom adjacent_def3 : (forall x:real. forall x1:real list.
+                      (forall x2:real. forall x3:real list.
+   (adjacent(Cons(x2, x3), Cons(x, x1)) ->
+   (((d_r(x2, x) <= 1.0) and (x3 = x1)) or ((x2 = x) and adjacent(x3, x1))))))
+
+axiom adjacent_def4 : (forall x:real. forall x1:real list.
+                      (forall x2:real. forall x3:real list.
+   ((((d_r(x2, x) <= 1.0) and (x3 = x1)) or ((x2 = x) and adjacent(x3, x1))) ->
+   adjacent(Cons(x2, x3), Cons(x, x1)))))
+
+axiom d2 : (forall l1:real list. forall l2:real list.
+           (0.0 <= d_lr(l1, l2)))
+
+axiom d3 : (forall l1:real list. forall l2:real list.
+            ((l1 = l2) ->
+            (d_lr(l1, l2) = 0.0)))
+
+axiom a1 : (forall l1:real list. forall l2:real list.
+           (adjacent(l1, l2) ->
+           (d_lr (l1, l2) <= 1.0)))
+
+axiom r1 : (forall e0:real. forall k:real.
+      ((0.0 <= e0) ->
+       ((0.0 <= k) ->
+       ((k <= 1.0)  ->
+       ((e0 * k) <= e0)))))
+
+goal bug : (forall e:real. forall x1:real. forall x2:real. forall xs1:real list. forall xs2:real list.
+   ((0.0 <= e) ->
+   (adjacent(Cons(x1, xs1), Cons(x2, xs2)) ->
+   ((e * d_r(x1, x2)) <= 0.0))))

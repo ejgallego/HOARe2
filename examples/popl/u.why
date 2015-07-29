@@ -1,0 +1,28 @@
+theory U
+
+  use import real.RealInfix
+
+  (* Unit interval *)
+  type u
+
+  (* Constants *)
+  function u_0 : u
+  function u_1 : u
+
+  function u_from_real (r : real) : u
+  function u_to_real   (u : u) : real
+
+  (* Main axioms *)
+  axiom u_zero : forall u : u .
+        0.0 <=. u_to_real u
+
+  axiom u_one : forall u : u.
+        u_to_real u <=. 1.0
+
+  axiom real_u_real : forall r : real .
+        0.0 <=. r -> r <=. 1.0 -> (u_to_real (u_from_real r)) = r
+
+  (* Less than *)
+  predicate (<:) (u1 u2 : u)
+
+end

@@ -1,0 +1,2 @@
+let rec loop (z : tuple0) : tuple0 = loop Tuple0 in
+loop

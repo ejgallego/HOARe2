@@ -1,0 +1,64 @@
+open int .Int     in
+open real.FromInt in
+
+open list.List    in
+open list.Length  in
+
+open proj.Projs   in
+
+open dp.DP        in
+open extra.Math   in
+
+fun (eps : { eps : real | 0.0 <=. eps } )
+    (* Positive epsilon *)
+
+    (* The laplacian primitive *)
+    (lap : Pi (e : real)
+              (x :: real).
+               M [e *. d_r x<1> x<2>]
+                 { r :: real | r<1> = r<2> })
+->
+
+(* Casting of length to a real *)
+let def l_r (l :: list real) : real =
+  from_int (length l)
+in
+
+(* We define alpha *)
+let def nAlpha (l1 : list real)
+               (l2 : list real) : real =
+    eps *. l_r l1 *. d_lr l1 l2
+in
+
+(* And the postcondition as a prop, *)
+let def pCond (l1 : list real)
+          (l2 : list real)
+          (r1 : (real * list real))
+          (r2 : (real * list real)) : prop =
+      d_r (fst r1) (fst r2) <=. d_lr l1 l2
+   /\ length l1 = length (snd r1)
+   /\ snd r1    = snd r2
+in
+
+(* Helper cut *)
+let def eq_v (l :: list real)
+             (x :: {r :: (real * list real) | pCond l<1> l<2> r<1> r<2>} )
+             :     {r :: (real * list real) | pCond l<1> l<2> r<1> r<2> } = x
+in
+
+(*  *)
+let rec noisySum (l :: { x :: list real | adjacent x<1> x<2> } ) { struct l } :
+    M [nAlpha l<1> l<2>] { r :: (real * list real) | pCond l<1> l<2> r<1> r<2> } =
+
+  match l with [ M [ nAlpha l<1> l<2> ]
+                   { r :: (real * list real) | pCond l<1> l<2> r<1> r<2> } ]
+
+    | Nil       -> munit (eq_v Nil (0.0, Nil))
+    | Cons x xs -> mlet yys = noisySum xs in
+
+                   match yys with [M [ eps *. d_lr l<1> l<2> ]
+                                     { r :: (real * list real) | pCond l<1> l<2> r<1> r<2> } ]
+                   | (y, ys) ->
+                     mlet a = lap eps (x +. y)           in
+                     munit (eq_v l (x +. y, Cons a ys))
+in noisySum

@@ -1,0 +1,99 @@
+* COMMENT Org header
+#+STARTUP: content
+#+STARTUP: hidestars
+#+STARTUP: odd
+#+TODO: TODO(t) WAITING(w) | CANCELLED(c) DONE(d)
+
+TODO list for the Relational Lambda Calculus compiler.
+
+* Core
+*** [#A] Use bidirectional type-checking.
+
+    - Already some experimental support in the async code, it is clear
+      what to do.
+
+    - We will review rules and refactor the TC code when we implement
+      this, likely merging the async/sync cases.
+
+    - Can we remove the mlet annotation and prefer a cut.
+      Is that always possible?
+
+*** [#A] Separate relational and non-relational typing.
+***** [#A] Turn ity into pcf.ml
+***** [#A] Parameterize expressions by type? Umm, not clear
+*** [#B] Occurs check in ity_unify.
+*** [#B] Remove non-relational binders.
+
+    Support for non-relational binders started from a misunderstanding
+    of the first version of the notes, and has been broken since.
+
+    We should make everything relational for a start (but the
+    quantifiers of course)
+
+    An option is to desugar a non-relational binding:
+
+    (a : T) to
+    (a :: {a :: T | a<1> = a<2>)
+
+    This could be useful.
+
+    I think it would be possible to properly support non-relational
+    expressions, but the type system would need to be aware of it,
+    basically assigning every expression a relational/non-relational
+    tag and checking everything is in order.
+
+    tests/project.rlc can give an idea...
+
+*** [#B] exp_state is a mess, we really want to improve that.
+*** [#C] Move some options to state? (So we can disable some stuff in subcalls easily)
+* Why3 layer:
+
+*** Translate HO terms (like in x@1 where x = var)
+
+    Already done, still some things need improvements, separating the
+    async relational typer from the PCF typing could help here.
+
+*** Extra translation:
+***** Translate let.
+***** Translate match.
+***** Translate lambdas.
+***** Translate monad.
+
+*** Refinements/axioms for M[a,d] types?
+* Parser/Lexer
+  * Support better binder syntax (b1 b2 : real)
+*** Syntax for non-refined functions a -> b.
+
+*** [#C] Improve ugly refinements in binders:
+
+    The idea is:
+
+    Pi (x :: {x :: Ty | \phi }). A
+
+    goes to
+
+    Pi (x :: Ty | \phi)
+
+    also
+
+    Pi (x :: Ty | =) could be useful.
+
+*** [#C] Polymorphic types.
+
+    - Right now all we have is a hack (lacking generalization, bugs,
+      etc), enough to make our lives a little bit more convenient.
+
+      It could be a start for something serious if we really need it.
+
+* Evaluator
+
+*** It is hacky and slow, but it works.
+
+    Rewrite in terms of fold_exp?
+
+    It requires to extend the fold to properly handle binders.
+
+    Instead of the parameter n, we want a general bi_st type and a
+    incr function incr : bi_st -> bi -> ty -> bi_st
+
+*** Fixpoints are not properly evaluated for now.

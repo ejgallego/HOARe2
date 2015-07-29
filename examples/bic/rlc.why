@@ -1,0 +1,28 @@
+(* Our rlc core theory *)
+theory Distr
+
+  use import HighOrd
+
+  type distr 'a
+
+  function munit (x : 'a) : distr 'a
+  function mbind (m : distr 'a) (f : 'a -> distr 'b) : distr 'b
+
+  (* Builtin skeletons *)
+
+  predicate tuple0_skeleton (t1 t2: ())                = true
+  predicate tuple2_skeleton (t1 t2 : ('a, 'b))         = true
+  predicate tuple3_skeleton (t1 t2 : ('a, 'b, 'c))     = true
+  predicate tuple4_skeleton (t1 t2 : ('a, 'b, 'c, 'd)) = true
+
+  use import bool.Bool
+
+  predicate bool_skeleton (b1 b2 : bool) = match b1,b2 with
+    | True,  True  -> true
+    | False, False -> true
+    | _            -> false
+  end
+
+  lemma b_eq_sk : forall b1 b2 : bool. b1 = b2 -> bool_skeleton b1 b2
+
+end

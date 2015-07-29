@@ -1,0 +1,542 @@
+open bool.Bool      in
+
+open comp.Bool      in
+
+open list.List      in
+open list.Length    in
+open list.Append    in
+open list.NthNoOpt  in
+
+
+open nat.Nat        in
+open int.Int        in
+
+open real.ExpLog    in
+open real.FromInt   in
+
+open proj.Projs     in
+
+(* We use this for lap and distances *)
+open dp.DP          in
+
+(* Unit interval *)
+open u.U            in
+
+(* Action  datatype *)
+open summary.Action in
+
+open extra.Math     in
+
+
+(* For now, just two players. Can generalize by allowing two different action
+   sets, where the special player has set act and the other ``player'' has set
+   act^{n}, but it doesn't seem important now. *)
+
+(* Adjustable parameters *)
+
+(* EG: I would prefer if we could abstract over the parameter with the
+   correct type (positive, etc...),
+
+   adding the correct refined types for now.
+
+*)
+
+(* Sensitivity of payoff *)
+let rho    : { rho    : real | rho    = 0.01 } = 0.01 in
+
+(* Sensitivity of signal *)
+let tau    : { tau    : real | tau    = 0.01 } = 0.01 in
+
+(* Fineness of the mesh we are querying *)
+let eta    : { eta    : real | eta    = 1.0  } = 1.0  in
+
+(* Privacy parameter *)
+let eps    : { eps    : real | eps    = 1.0  } = 1.0  in
+
+(* Noise failure probability *)
+let beta   : { beta   : real | beta   = 0.01 } = 0.01 in
+
+(* Max signal value *)
+let lambda : { lambda : int  | lambda = 3    } = 3    in
+
+(* Noise bound (note: this depends on beta) *)
+let t      : { t      : real | t      = tau +. (log (2.0 /. beta)) /. eps  } =
+  tau +. (log (2.0 /. beta)) /. eps  in
+
+
+(* ******************************************************************** *)
+(* Logical definitions                                                  *)
+
+(* EG: There are a few places where:
+
+   nat_to_real (int_to_nat lambda)
+
+   is used in place of a more likely "from_int lambda"
+
+   maybe we could improve that?
+
+*)
+
+let def inU (s1 : real)
+            (s2 : real)
+          : prop =
+  0.0 <=. s1 /\ s1 <=. 1.0 /\
+  0.0 <=. s2 /\ s2 <=. 1.0
+in
+
+let def mkSumsPost (range : nat)
+                   (sums1 : list real)
+                   (sums2 : list real)
+                   (sg1   : Pi (s : real) . act)
+                   (sgs   : Pi (s : real) . act)
+                   (sig   : Pi (a' : act). Pi (a : act) . real)
+                 : prop =
+  sums1 = sums2 /\
+  length sums1 = (nat_to_int range) + 1 /\
+  all (fun (i : int) ->
+       0 <= i                =>
+       i <= nat_to_int range =>
+         d_r (nth i sums1)
+             (sig (sg1 (from_int i)) (sgs (from_int i)))
+             <.
+             tau +. (log (2.0 /. beta)) /. eps)
+in
+
+let def sigMono (sg1 : Pi (s : real) . act)
+                (sgs : Pi (s : real) . act)
+                (sig : Pi (a' : act). Pi (a : act) . real)
+              : prop =
+  all (fun (sum : real) ->
+    all (fun (sum' : real) ->
+      (sum <=. sum') =>
+      sig (sg1 sum) (sgs sum)
+        <=.
+        sig (sg1 sum') (sgs sum')))
+in
+
+let def sigSens (sig : Pi (a' : act). Pi (a : act) . real)
+              : prop =
+  all (fun (a1 : act) ->
+    all (fun (a2 : act) ->
+      all (fun (a3 : act) ->
+      d_r (sig a1 a3) (sig a2 a3) <=. tau)))
+  /\
+  all (fun (a1 : act) ->
+    all (fun (a2 : act) ->
+      (sig a1 a2) <=. from_int lambda /\
+      (sig a1 a2) >=. 0.0))
+in
+
+let def sumsPre (sums1 : list real)
+                (sums2 : list real)
+                (sg1 : Pi (s : real). act)
+                (sgs : Pi (s : real) . act)
+                (sig : Pi (a' : act) (a : act) . real)
+              : prop =
+  sums1 = sums2 /\
+  all (fun (j : int) ->
+    (0 <= j)         =>
+    (j <= lambda - 1)    =>
+    d_r (nth j sums1)
+    (sig (sg1 (from_int j)) (sgs (from_int j))) <. t /\
+    (nth j sums1 -. nth (j + 1) sums1) <=. 2.0 *. t
+    )
+in
+
+let def searchPost (res1 : (bool * nat))
+                   (res2 : (bool * nat))
+                   (i : nat)
+                   (sums1 : list real)
+                 : prop =
+  res1 = res2
+  /\
+  (nat_to_int (snd res1)) <= (nat_to_int i)
+  /\
+  0 <= (nat_to_int (snd res1))
+  /\
+  (
+  (fst res1) = True =>
+    d_r
+    (nat_to_real (snd res1))
+    (nth (nat_to_int (snd res1)) sums1) <=. t +. eta /. 2.0
+  )
+  /\
+  (
+  (fst res1) = False => (all (fun (j : int) ->
+                           0 <= j              =>
+                           j <= (nat_to_int i) =>
+                           nth j sums1 >. (from_int j) +. t +. eta /. 2.0))
+  )
+in
+
+let def pSigPost (s1 : nat)
+                 (s2 : nat)
+                 (pay' : Pi (a : act) (s : real) . real)
+                 (sg1  : Pi (s : real)           . act)
+                 (sgs  : Pi (s : real)           . act)
+                 (sig  : Pi (a' : act) (a : act) . real)
+                 : prop =
+  s1 = s2
+  /\
+  (nat_to_int s1) <= lambda
+  /\
+  0 <= (nat_to_int s1)
+  /\
+  all (fun (dev : act) ->
+      pay' dev (sig dev (sgs (nat_to_real s1)))
+      <=.
+      pay' (sg1 (nat_to_real s1)) (sig (sg1 (nat_to_real s1)) (sgs (nat_to_real s1)))
+         +. tau *. rho
+         +. (2.0 *. t +. eta /. 2.0) *. rho
+         +. (2.0 *. t +. eta /. 2.0) *. rho)
+in
+
+let def sgBR (pay' : Pi (a : act) (s : real) . real )
+             (sg1  : Pi (s : real)           . act  )
+           : prop =
+  all (fun (dev : act) ->
+    all (fun (sum : real) ->
+      pay' (sg1 sum) sum >=. pay' dev sum))
+in
+
+
+(* Primitives *)
+
+(* JH: TODO: use interval type! *)
+(* Laplace with accuracy bound. Check soundness. *)
+fun (lap : Pi (e : { e : real | e >=. 0.0 })
+              (b : { b : real | 0.0 <=. b /\ b <=. 0.5 })
+              (x :: real).
+              M [ e *. d_r x<1> x<2>, b]
+                { r :: real | r<1> = r<2> /\
+                              d_r r<1> x<1> <. d_r x<1> x<2>
+                              +. (log (2.0 /.  b)) /. e  })
+
+
+    (* Relational type for expectation *)
+    (expect : Pi (eps : { eps : real | eps >=. 0.0 } )
+                 (b : { b : real | 0.0 <=. b /\ b <=. 0.5 })
+                 (c : real)
+                 (mu :: M[ eps, b ]
+                        { x :: u | u_to_real x<1> >=. u_to_real x<2> -. c }).
+                 { e :: u |
+                        u_to_real e<1> >=. u_to_real e<2> -. eps -. c -. b /. (exp eps) })
+->
+
+let rec mkSums (range :: {range :: nat | range<1> = range<2> } )
+               (sg    :: Pi (s :: real) . act)
+               (sgs   :  Pi (s :: real) . act)
+               (sig   :  { sig : Pi (a' :: act) (a : act) . real
+                               | sigMono sg<1> sgs sig /\ sigSens sig } )
+               { struct range }
+      : M[ eps *. ((nat_to_real range<1>) +. 1.0) *. tau,
+           ((nat_to_real range<1>) +. 1.0) *. beta ]
+         { sums :: list real | mkSumsPost range<1> sums<1> sums<2> sg<1> sgs sig } =
+
+  match range with[
+     M[ eps *. ((nat_to_real range<1>) +. 1.0) *. tau ,
+        ((nat_to_real range<1>) +. 1.0) *. beta ]
+     { sums :: list real | mkSumsPost range<1> sums<1> sums<2> sg<1> sgs sig }
+  ]
+  | Zero    ->
+    mlet s = lap eps beta
+             (sig (sg (nat_to_real range)) (sgs (nat_to_real range)))                      in
+
+    (* Cut *)
+    let sums :: { sums :: list real
+                        | mkSumsPost range<1> sums<1> sums<2> sg<1> sgs sig } = Cons s Nil in
+    munit sums
+
+  | Succ i' ->
+    mlet s = lap eps beta
+             (sig (sg (nat_to_real range)) (sgs (nat_to_real range)))                      in
+    mlet ss = mkSums i' sg sgs sig                                                         in
+
+    (* Standard Cut, missing the SMT one *)
+    let sums :: { sums :: list real | mkSumsPost range<1> sums<1> sums<2> sg<1> sgs sig }
+      = (ss ++ Cons s Nil) in
+    munit sums
+in
+
+
+let rec search (i  :: { i :: nat | i<1> = i<2> /\ (nat_to_int i<1>) <= lambda })
+               (sg :: Pi (s :: real) . act)
+               (sgs : Pi (s :: real) . act)
+               (sig : { sig : Pi (a' :: act) (a : act) . real
+                            | sigMono sg<1> sgs sig /\ sigSens sig } )
+               (sums :: { sums :: list real | sumsPre sums<1> sums<2> sg<1> sgs sig } )
+               { struct i }
+      : { res :: (bool * nat) | searchPost res<1> res<2> i<1> sums<1> } =
+
+  match le_real (d_r (nat_to_real i) (nth (nat_to_int i) sums)) (t +. eta /. 2.0) with[
+    { res :: (bool * nat) | searchPost res<1> res<2> i<1> sums<1> }
+  ]
+  | True  -> (True, i)
+  | False ->
+    match i with[ { res :: (bool * nat) | searchPost res<1> res<2> i<1> sums<1> } ]
+
+    | Zero -> have : { d_r (nth 0 sums<1>) (sig (sg<1> 0.0) (sgs 0.0)) <. t }                                in
+              let bidi_cut :: {res :: (bool * nat) | searchPost res<1> res<2> i<1> sums<1> } = (False, Zero) in
+              bidi_cut
+
+    | Succ i' ->
+        have : { from_int (nat_to_int i'<1>) = from_int (nat_to_int i<1>) -. 1.0 } in
+
+        (* Those cuts will be simplified with the bidi stuff *)
+        let kut2 :: { res :: (bool * nat)
+                    | searchPost res<1> res<2> i'<1> sums<1>
+                      /\
+                      (fst res<1> = False) =>
+                      nth (nat_to_int i<1>) sums<1>
+                      >.
+                      ((from_int (nat_to_int i<1>) +. t) +. (eta /. 2.000))
+        }
+        = search i' sg sgs sig sums in
+        let kut3 :: {res :: (bool * nat) | searchPost res<1> res<2> i<1> sums<1> } = kut2 in
+        kut3
+in
+
+let pSig (pay' : Pi (a : act) (s :: real) .
+                      { p :: real | d_r p<1> p<2> <=. rho *. d_r s<1> s<2> })
+           (* pays is not actually used anywhere. *)
+         (pays : Pi (a : act) (s :: real) .
+                      { p :: real | d_r p<1> p<2> <=. rho *. d_r s<1> s<2> })
+         (sg :: { sg :: Pi (s :: real) . act | sgBR pay' sg<1> })
+         (sgs : Pi (s :: real) . act)
+         (sig : { sig : Pi (a' :: act) (a : act) . real
+                           | sigMono sg<1> sgs sig /\ sigSens sig
+                      } )
+         : M[ from_int (lambda + 1) *. eps *. tau,
+              from_int (lambda + 1) *. beta
+            ]
+         { s :: nat | pSigPost s<1> s<2> pay' sg<1> sgs sig } =
+
+  mlet sums = mkSums (int_to_nat lambda) sg sgs sig in
+  (*
+  all (fun (i : int) ->
+  (i <= lambda /\ 0 <= i)
+  =>
+  d_r (nth i sums<1>)
+      (sig (sg<1> (real_of_int i)) (sgs (real_of_int i))) <=. t)
+  *)
+  have : { d_r (nth lambda sums<1>) (sig (sg<1> (from_int lambda)) (sgs (from_int lambda))) <. t } in
+  have : { nth lambda sums<1> <=. from_int lambda +. t }                                           in
+  let res :: { res :: (bool * nat) |
+  (*
+      res<1> = res<2>
+      /\
+      (nat_to_int (snd res1)) <= lambda
+      /\
+      0 <= (nat_to_int (snd res1))
+      /\
+      (fst res) = True =>
+        d_r
+        (nat_to_real (snd res))
+        (nth (int_to_nat (snd res)) sums<1>) <=. t +. eta /. 2.0
+      /\
+      (fst res) = False => (all (fun (j : int) ->
+                            from_int j <=. (nat_to_real i)
+                            => nth j sums<1> >=.
+                            (from_int j) +. t +. eta /. 2.0))
+  *)
+  (* Instantiating i = j = lambda implies... *)
+              res<1> = res<2>
+              /\
+              (nat_to_int (snd res<1>)) <= lambda
+              /\
+              (fst res<1>) = True
+              /\
+              d_r
+              (nat_to_real (snd res<1>))
+              (nth (nat_to_int (snd res<1>)) sums<1>) <=. t +. eta /. 2.0
+            } = search (int_to_nat lambda) sg sgs sig sums in
+  match res with[ M { s :: nat | pSigPost s<1> s<2> pay' sg<1> sgs sig }]
+  (*
+    s :: real | s<1> = s<2>
+                /\ all (fun (dev : act) ->
+                     pay' dev (sig dev (sgs s<1>))
+                     <=. 
+                     pay' (sg<1> s<1>) (sig (sg<1> s<1>) (sgs s<1>))
+                       +. tau *. rho
+                       +. (t +. t +. eta /. 2.0) *. rho
+                       +. (t +. t +. eta /. 2.0) *. rho
+                       )
+  *)
+  (* Reasoning:
+     
+     sig (sg<1> s<1>) (sgs s<1>)
+        |
+        | t + eta/2 (searchPost)
+        |
+     nth s<1> sums<1>
+        |
+        | t (noise bound)
+        |
+     s<1> 
+
+     pay' (sg<1> s<1>) (sig (sg<1> s<1>) (sgs s<1>))
+        |
+        | (t + t + eta/2) * rho (payoff rho-sensitive in signal)
+        |
+     pay' (sg<1> s<1>) s<1>
+        |
+        | 0 (sg<1> is best response)
+        |
+     pay' dev s<1>
+        |
+        | (t + t + eta/2) * rho (payoff rho-sensitive in signal)
+        |
+     pay' dev (sig (sg<1> s<1>) (sgs s<1>))
+        |
+        | tau * rho (signal tau-sensitive in action, payoff rho-sensitive in signal)
+        |
+     pay' dev (sig dev (sgs s<1>))
+
+     Total: (2t + eta/2) * rho + (2t + eta/2) * rho + tau * rho
+  *)
+  | (done, s) ->
+    have : { all (fun (dev : act) ->
+                  d_r (pay' dev (nat_to_real s<1>))
+                      (pay' dev (sig (sg<1> (nat_to_real s<1>)) (sgs (nat_to_real s<1>))))
+              <=. rho *. (2.0 *. t +. eta /. 2.0)) } in
+    have : { all (fun (dev : act) ->
+                  d_r (pay' dev (sig (sg<1> (nat_to_real s<1>)) (sgs (nat_to_real s<1>))))
+                      (pay' dev (sig dev (sgs (nat_to_real s<1>))))
+              <=. tau *. rho) } in
+
+    (* This helps CVC4 a lot *)
+    have : { s<1> = s<2> } in
+
+    (* Lack of BIDI cut. *)
+    let res_cut : {s :: nat | pSigPost s<1> s<2> pay' sg<1> sgs sig } = s in
+    munit res_cut
+in
+
+let jdp_cut (p :: { p :: (act * act) | snd p<1> = snd p<2> }) :
+  { q :: (act * act) | snd q<1> = snd q<2> } =
+  p
+in
+
+let jdp (pay' : Pi (a : act) (s :: real) .
+                { p :: real | d_r p<1> p<2> <=. rho *. d_r s<1> s<2> })
+        (pays : Pi (a : act) (s :: real) .
+                { p :: real | d_r p<1> p<2> <=. rho *. d_r s<1> s<2> })
+        (sg :: { sg :: Pi (s :: real) . act | sgBR pay' sg<1> })
+        (sgs : Pi (s :: real) . act)
+        (sig : { sig : Pi (a' :: act) (a : act) . real
+                          | sigMono sg<1> sgs sig /\ sigSens sig })
+        : M[ from_int (lambda + 1) *. eps ,
+             from_int (lambda + 1) *. beta]
+        { res :: (act * act) | (snd res<1>) = (snd res<2>) } =
+
+  mlet s = pSig pay' pays sg sgs sig in
+  let scast :: { scast :: real | scast<1> = scast<2> } = nat_to_real s in
+  (* 
+     s<1> = s<2> /\
+     all (fun (dev : act) ->
+       pay' dev (sig dev (sgs s<1>))
+       <=. 
+       pay' (sg<1> s<1>) (sig (sg<1> s<1>) (sgs s<1>))
+         +. tau *. rho
+         +. (2 t +. eta /. 2.0) *. rho
+         +. (2 t +. eta /. 2.0) *. rho)
+  *)
+  let as :: { as :: act | as<1> = as<2> } = sgs scast in
+  let a  :: act = sg scast in
+  munit (jdp_cut (a, as))
+in
+
+let ane_m (pay' : Pi (a : act) (s :: real) .
+                { p :: real | d_r p<1> p<2> <=. rho *. d_r s<1> s<2>
+                              /\ inU p<1> p<2> })
+        (pays : Pi (a : act) (s :: real) .
+                { p :: real | d_r p<1> p<2> <=. rho *. d_r s<1> s<2>
+                              /\ inU p<1> p<2> })
+        (sg :: { sg :: Pi (s :: real) . act | sgBR pay' sg<1> })
+        (sgs : Pi (s :: real) . act)
+        (sig : { sig : Pi (a' :: act) (a : act) . real
+                            | sigMono sg<1> sgs sig /\ sigSens sig })
+        (dev :: { dev :: Pi (a : act). act | all (fun (a : act) -> dev<1> a = a) } )
+
+     : M[ from_int (lambda + 1) *. eps,
+          from_int (lambda + 1) *. beta]
+              { u :: u | (u_to_real u<1>) >=. (u_to_real u<2>) -. rho *. (tau +. 4.0 *. t +. eta) }
+=
+        (* : M[exp ((from_int (lambda + 1)) *. eps), *)
+        (*     (from_int (lambda + 1)) *.  beta] *)
+        (*   { u :: real | u<1> >=. u<2> -. rho *. (tau +. 4.0 *. t +. eta) } = *)
+(*        : { u :: real | u<1> >=. u<2>
+                              -. rho *. (tau +. 4.0 *. t +. eta)
+                              -. (from_int (lambda + 1)) *. eps
+                              -. (from_int (lambda + 1)) *. beta
+                                 /. (exp ((from_int (lambda + 1)) *. eps)) } =
+*)
+    mlet s = pSig pay' pays sg sgs sig in [
+      M[ from_int (lambda + 1) *. eps,
+         from_int (lambda + 1) *. beta]
+              { u :: u | u_to_real u<1> >=. u_to_real u<2> -. rho *. (tau +. 4.0 *. t +. eta) }
+    ]
+
+    let scast :: { scast :: real |
+        scast<1> = scast<2> /\
+           all (fun (dev : act) ->
+             pay' dev (sig dev (sgs scast<1>))
+             <=.
+             pay' (sg<1> scast<1>) (sig (sg<1> scast<1>) (sgs scast<1>))
+               +. tau *. rho
+               +. (2.0 *. t +. eta /. 2.0) *. rho
+               +. (2.0 *. t +. eta /. 2.0) *. rho)
+    } = nat_to_real s in
+    let recommended :: { r :: act | r<1> = sg<1> scast<1> } = sg scast in
+    let a :: { a :: act | a<1> = recommended<1> } = dev recommended    in
+    let u :: { u :: u | (u_to_real u<1>) >=. (u_to_real u<2>) -. rho *. (tau +. 4.0 *. t +. eta) }
+      = u_from_real (pay' a (sig a (sgs scast))) in
+    munit u
+in
+
+let ane_u (d :: M[ from_int (lambda + 1) *. eps,
+                   from_int (lambda + 1) *. beta]
+                { u :: u | u_to_real u<1> >=. u_to_real u<2> -. rho *. (tau +. 4.0 *. t +. eta) })
+          : { u :: real | u<1> >=. u<2>
+                                 -. rho *. (tau +. 4.0 *. t +. eta)
+                                 -. from_int (lambda + 1) *. eps
+                                 -. from_int (lambda + 1) *. beta
+                                 /. exp (from_int (lambda + 1)) *. eps } =
+      (* SMT help... *)
+      have : { from_int lambda = 1.0 +. 1.0 +. 1.0 } in
+
+      (* EG: I'm sorry for this cuts, they will go away soon with the
+         bidirectional code! *)
+
+      let res :: { u :: real | u<1> >=. u<2>
+                                 -. rho *. (tau +. 4.0 *. t +. eta)
+                                 -. (from_int (lambda + 1)) *. eps
+                                 -. (from_int (lambda + 1)) *. beta
+                                 /. (exp ((from_int (lambda + 1)) *. eps)) } =
+      u_to_real (
+       expect ((from_int (lambda + 1)) *. eps)
+              ((from_int (lambda + 1)) *. beta)
+              (rho *. (tau +. 4.0 *. t +. eta))
+              d
+      ) in res
+in
+
+let ane (pay' : Pi (a : act) (s :: real) .
+                { p :: real | d_r p<1> p<2> <=. rho *. d_r s<1> s<2>
+                              /\ inU p<1> p<2> })
+        (pays : Pi (a : act) (s :: real) .
+                { p :: real | d_r p<1> p<2> <=. rho *. d_r s<1> s<2>
+                              /\ inU p<1> p<2> })
+        (sg :: { sg :: Pi (s :: real) . act | sgBR pay' sg<1> })
+        (sgs : Pi (s :: real) . act)
+        (sig : { sig : Pi (a' :: act) (a : act) . real
+                            | sigMono sg<1> sgs sig /\ sigSens sig })
+        (dev :: { dev :: Pi (a : act). act | all (fun (a : act) -> dev<1> a = a) } )
+      : { u :: real | u<1> >=. u<2>
+                               -. rho *. (tau +. 4.0 *. t +. eta)
+                               -. (from_int (lambda + 1)) *. eps
+                               -. (from_int (lambda + 1)) *. beta
+                               /. (exp ((from_int (lambda + 1)) *. eps)) } =
+    ane_u (ane_m pay' pays sg sgs sig dev)
+in
+pSig

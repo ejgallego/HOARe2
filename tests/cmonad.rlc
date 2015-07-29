@@ -1,0 +1,11 @@
+import "int"  "Int"  in
+import "list" "List" in
+
+let rec length (l : real list)
+      : C int =
+  match l with [C int]
+  | Nil       -> cunit 0
+  | Cons x xs -> clet l_xs = length xs in
+                 cunit (1 + l_xs)
+in
+length

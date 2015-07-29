@@ -1,0 +1,5 @@
+let swap (p : (int * int)) : (int * int) =
+  match p with [(int * int)]
+  | (x, y) -> (y, x)
+in
+swap

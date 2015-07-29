@@ -1,0 +1,67 @@
+(* Two-level counter *)
+open list.List  in
+open nat.Nat    in
+open dp.DP      in
+open extra.Math in
+
+(* Cut *)
+let def eq_v (x :: {x :: list real | x<1> = x<2>}) : {l :: list real | l<1> = l<2> } = x
+in
+
+fun (eps : { eps : real | 0.0 <=. eps } )
+
+    (* The laplacian primitive *)
+    (lap : Pi (e : real)
+              (x :: real).
+               M [ e *. d_r x<1> x<2> ]
+                 { r :: real | r<1> = r<2> })
+
+    (* Verified in histrogram.rlc *)
+    (histogram : Pi (l :: { x :: list real | adjacent x<1> x<2> } ).
+                     M[ eps *. d_lr l<1> l<2> ]
+                      { r :: list real | r<1> = r<2> })
+    (* "Pure" function *)
+    (createsums : Pi (b :: list real) (h :: list real). list real)
+
+->
+
+let def cs_cut
+      (l :: list real)
+      (r :: { r :: list real | d_lr r<1> r<2> <=. d_lr l<1> l<2> /\ adjacent r<1> r<2> })
+      :     { r :: list real | d_lr r<1> r<2> <=. d_lr l<1> l<2> /\ adjacent r<1> r<2> } = r in
+
+(* Non-structurally recursive chunksum *)
+let rec chunksum (togo : nat)
+                 (q : nat)
+                 (acc : real)
+                 (l :: {l :: list real | adjacent l<1> l<2>})
+               : C {r :: list real | d_lr r<1> r<2> <=. d_lr l<1> l<2>
+                                     /\ adjacent r<1> r<2> } =
+
+    match l with [C {r :: list real | d_lr r<1> r<2> <=. d_lr l<1> l<2>  /\ adjacent r<1> r<2> }]
+    | Nil       -> cunit (cs_cut l (Cons acc Nil))
+    | Cons x xs ->
+      match togo with [C {r :: list real | d_lr r<1> r<2> <=. d_lr l<1> l<2>  /\ adjacent r<1> r<2> }]
+      (* This is the non-structural call *)
+      | Zero    -> clet cs = chunksum q q 0.0 l in
+                   cunit (cs_cut l (Cons acc cs))
+      | Succ q' -> chunksum q q' (x +. acc) xs
+in
+
+let def eq_v (x :: {x :: list real | x<1> = x<2>}) :
+         {l :: list real | l<1> = l<2> } = x
+in
+
+let twolevel (q : nat)
+             (l :: {l :: list real | adjacent l<1> l<2>})
+           : C M [ 2.0 *. eps *. d_lr l<1> l<2> ] {r :: list real | r<1> = r<2> } =
+
+    clet cs = chunksum q q 0.0 l  in
+    cunit (
+                                     (* Annotation needed as cs is not free in the generated type *)
+     mlet hist   = histogram l    in [M [2.0 *. eps *. d_lr l<1> l<2>] {r :: list real | r<1> = r<2> }]
+     mlet blocks = histogram cs   in
+     munit (eq_v (createsums blocks hist))
+    )
+
+in twolevel

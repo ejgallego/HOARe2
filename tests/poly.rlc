@@ -1,0 +1,5 @@
+(* Test our "fake" polymorphism *)
+let f : Pi (x : 'a). ('a * 'a) =
+  fun (x : 'a) -> (x, x) in
+f 3.0
+

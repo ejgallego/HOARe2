@@ -1,0 +1,247 @@
+theory Option
+  use export option.Option
+  lemma test : forall x : option 'a. x<>None -> exists y:'a. x=Some y
+end
+
+(* New inductive axiom *)
+theory DoubleInduction
+  use import list.List
+  type elt
+  predicate p (list elt) (list elt)
+  axiom Induction:
+    p (Nil: list elt) (Nil: list elt) ->
+    (forall x1 x2:elt. forall l1 l2:list elt. p l1 l2 -> p (Cons x1 l1) (Cons x2 l2)) ->
+    forall l1 l2:list elt. p l1 l2
+end
+
+(* Definitions *)
+theory DP
+
+  use export real.Real
+  use export real.Real
+  use import real.Abs
+  use import list.Nth
+
+  use import list.List
+  use import list.Length
+
+  predicate  skeleton (l1 l2 : list 'a) = match l1,l2 with
+    | Nil, Nil -> true
+    | Cons _ l1, Cons _ l2 -> skeleton l1 l2
+    | Nil, Cons _ _ -> false
+    | Cons _ _, Nil -> false
+  end
+
+  function dist_real (x1 x2 : real) : real = abs (x1 -x2)
+
+  (* I am playing with these three variants of list distance definitions.
+     I cannot decide which one is more convenient.
+     I still couldn't verify the equivalences between them.
+  *)
+
+  inductive dist_list (l1 l2 : list real) (b: real) = 
+    | dist_nil_ : dist_list Nil Nil 0.0
+    | dist_cons_ : forall xs ys : list real, x y n:real. 
+      dist_list xs ys n -> dist_list (Cons x xs) (Cons y ys) (n + dist_real x y)
+
+  predicate dist_list_pred (l1 l2 : list real) (b: real) = match l1, l2 with
+    | Nil, Nil -> b = 0.0
+    | Cons x xs, Cons y ys -> dist_list_pred xs ys (b-dist_real x y)
+    | _ -> false
+  end
+
+  function dist_list_opt (l1 l2 : list real) : option real  = match l1,l2 with
+    | Nil, Nil -> Some 0.0
+    | Cons x xs, Cons y ys -> 
+      match dist_list_opt xs ys with 
+        | Some b -> Some (b + (dist_real x y))
+        | _ -> None
+      end 
+    | _ -> None
+    end
+
+
+  (* inductive list equality *)
+  (* does it help? *)
+  inductive eq_list (l1 l2 : list real) = 
+    | eq_nil : eq_list Nil Nil 
+    | eq_cons : forall x1 x2: real. forall l1 l2 : list real. 
+        x1 = x2 -> eq_list l1 l2 -> eq_list (Cons x1 l1) (Cons x2 l2)
+
+
+  (* inductive adjacent variant *)
+  predicate adjacent_list (l1 l2 : list real) (b:real) = match l1,l2 with
+   | Nil, Nil -> true
+   | Cons x xs, Cons y ys ->
+     (x=y /\ adjacent_list xs ys b) || (dist_real x y <= b /\ eq_list xs ys)
+   | Nil, Cons _ _ -> false
+   | Cons _ _, Nil -> false
+   end
+
+
+  (* just auxiliar predicate for ugly adjacent variant below *)       
+  predicate dist_real_nth (n:int) (l1 l2 : list real) (b:real) = 
+    match (nth n l1), (nth n l2) with
+      | Some x1, Some x2 -> dist_real x1 x2 <= b
+      | _ -> true
+    end
+
+  (* not good *)
+  predicate adjacent_list_real (l1 l2 : list real) (b:real) = 
+    length l1 = length l2
+    /\
+    forall j:int. dist_real_nth j l1 l2 b
+    /\
+    exists i:int. forall j:int. j<>i -> nth j l1 = nth j l2
+
+
+end
+
+
+
+
+(* 
+   This is a theory with the list predicates to prove by induction
+   with DoubleInduction Theory or Induction Theory. I do not know 
+   of an alternative way to cloning one theory per lemma.
+   - Some of them are just written for testing.
+*)
+theory List_predicates
+  use import DP
+  use import list.List
+  use import option.Option
+  predicate eq_list_sym (l1 l2 : list real) = eq_list l1 l2 -> eq_list l2 l1
+  predicate eq_list_refl (l : list real) = eq_list l l
+  predicate adjacent_eq (l1 l2 : list real) = l1 = l2 -> adjacent_list l1 l2 0.0
+  predicate adjacent_eq' (l1 l2 : list real) = eq_list l1 l2 -> adjacent_list l1 l2 0.0
+  predicate adjacent_cons (l1 l2 : list real) = 
+    forall x1 x2 b : real. 
+           adjacent_list (Cons x1 l1) (Cons x2 l2) b -> adjacent_list l1 l2 b
+  predicate adjacent_skeleton (xs ys : list real) =
+    forall b: real. (adjacent_list xs ys b -> skeleton xs ys)
+  (* equivalences of dist_list, dist_list_pred, dist_list_opt *)
+  predicate dist_list_opt_ (xs1 xs2 : list real) = forall n :real. 
+        dist_list xs1 xs2 n <-> (dist_list_opt xs1 xs2 = Some n)
+end
+
+
+(* *)
+theory Eq_list_sym
+  use import DP
+  use import list.List
+  use import List_predicates
+  clone DoubleInduction with type elt = real, predicate p = eq_list_sym
+  lemma proof : forall l1 l2 : list real. eq_list_sym l1 l2
+end
+
+
+(* *)
+theory Eq_list_refl
+  use import DP
+  use import list.List
+  use import List_predicates
+  clone list.Induction with type elt = real, predicate p = eq_list_refl
+  lemma proof : forall l  : list real. eq_list_refl l 
+end
+
+(* *)
+theory Adjacent_eq
+  use import DP
+  use import list.List
+  use import List_predicates
+  clone DoubleInduction with type elt = real, predicate p = adjacent_eq
+  lemma proof : forall l1 l2 : list real. adjacent_eq l1 l2
+end
+
+(* *)
+theory Adjacent_eq'
+  use import DP
+  use import list.List
+  use import List_predicates
+  clone DoubleInduction with type elt = real, predicate p = adjacent_eq'
+  lemma proof : forall l1 l2 : list real. adjacent_eq' l1 l2
+end
+
+(* *)
+theory Adjacent_cons
+  use import DP
+  use import list.List
+  use import List_predicates
+  clone DoubleInduction with type elt = real, predicate p = adjacent_cons
+  lemma proof : forall l1 l2 : list real. adjacent_cons l1 l2
+end
+
+(* *)
+theory Dist_list_opt
+  use import DP
+  use import list.List
+  use import List_predicates
+  clone DoubleInduction with type elt = real, predicate p = dist_list_opt_
+  lemma proof_Nil : dist_list_opt_ Nil Nil
+  axiom proof_Cons : forall l1 l2 : list real. forall x1 x2 : real.
+    dist_list_opt_ l1 l2 -> dist_list_opt_ (Cons x1 l1) (Cons x2 l2)
+  lemma proof : forall l1 l2 : list real. dist_list_opt_ l1 l2 
+end
+
+
+(* *)
+theory Adjacent_skeleton
+  use import DP
+  use import list.List
+  use import List_predicates
+  clone DoubleInduction with type elt = real, predicate p = adjacent_skeleton
+  lemma proof : forall l1 l2 : list real. adjacent_skeleton l1 l2 
+end
+
+
+
+(* Proofs above by the induction and double_induction axioms are quickly 
+   discharged (e.g. by AltErgo) as long as the instantiating predicate 
+   is not unfolded in the main lemma. 
+   I wonder how easily SMT-solvers can conclude thus the "unfolded" lemma. 
+   In the following "Test" theory, at least Eprover,Z3, could do it. 
+*)
+theory Main
+  use import list.List
+  use import DP
+  use import option.Option
+  use import real.ExpLog
+  axiom exp_monotonous : forall x y : real. x<=y -> exp x <= exp y
+
+  (* from Adjacent_cons theory:  *)
+  use import Adjacent_cons
+  lemma adjacent_cons : forall l1 l2 : list real. forall x1 x2 b : real.
+        adjacent_list (Cons x1 l1) (Cons x2 l2) b -> adjacent_list l1 l2 b
+
+  (* from Dist_list_opt theory: *)
+  use import Dist_list_opt
+  lemma dist_list_opt : forall xs1 xs2: list real, n :real.
+        dist_list xs1 xs2 n <-> dist_list_opt xs1 xs2 = Some n
+
+  (* from Adjacent_skeleton theory: *)
+  use import Adjacent_skeleton
+  lemma adjacent_skeleton : forall l1 l2 : list real. forall x : real.
+    (adjacent_list l1 l2 x -> skeleton l1 l2)
+
+  (* Some misc/test lemmas *)
+  lemma dist_cons : forall xs1 xs2: list real, n x1 x2:real. 
+    dist_list (Cons x1 xs1) (Cons x2 xs2) n -> 
+      dist_list xs1 xs2 (n - dist_real x1 x2 )
+
+  lemma dist_list_opt_cons : forall xs1 xs2: list real, n n' x1 x2 :real. 
+    dist_list_opt xs1 xs2 = Some n ->
+    dist_list_opt (Cons x1 xs1) (Cons x2 xs2) = Some n' ->
+      n' = n + dist_real x1 x2
+
+  lemma dist_list_cons : forall xs1 xs2: list real, n n' x1 x2 :real. 
+    dist_list xs1 xs2 n ->
+    dist_list (Cons x1 xs1) (Cons x2 xs2) n' ->
+      n' = n + dist_real x1 x2
+
+  lemma dist_list_opt_exp : forall xs1 xs2: list real, n n' x1 x2 eps:real. 
+    dist_list_opt xs1 xs2 = Some n ->
+    dist_list_opt (Cons x1 xs1) (Cons x2 xs2) = Some n' ->
+      exp (eps * n) * exp(eps * dist_real x1 x2) <= exp (eps * n')
+
+
+end

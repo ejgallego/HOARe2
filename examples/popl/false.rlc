@@ -1,0 +1,13 @@
+import "int" "Int" in
+
+(* Give me (), get a proof of 0 = 1 *)
+let rec f (x :: tuple0 ) : { r :: int | 0 = 1 } = f x in
+
+(* Cut to help the typechekcer *)
+let cast : Pi (x :: { x :: int | 0 = 1 }) . { x :: int | 0 = 1 } =
+  fun (x :: { x :: int | 0 = 1 }) -> x                in
+
+(* Given a proof of 0 = 1, then return a number *)
+let m    : { m :: int | 0 = 1 } =
+  (fun (x :: { x :: int | 0 = 1 }) -> cast 1 ) (f Tuple0)
+in  m

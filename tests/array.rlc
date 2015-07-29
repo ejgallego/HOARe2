@@ -1,0 +1,9 @@
+import "map" "Map"     in
+(* import "bag" "Bag"     in *)
+(* import "array" "Array" in *)
+
+(* let m : int bag   = empty_bag in *)
+(* let k : int array = []        in *)
+(* (m, k) *)
+let b : { r :: real | r<1> = r<2> } = 3.0 in
+3

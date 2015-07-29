@@ -1,0 +1,22 @@
+theory Types
+
+  type samples
+  type query
+  type queryclass
+
+end
+
+theory SmtHints
+
+  use import real.RealInfix
+  use import list.List
+  use import dp.DP
+
+  (* CVC3 verifies this hint *)
+
+  lemma dist_comp : forall k f e1 e2 : real.
+        0.0 <=. f ->
+        d_r e1 e2 <=. 1.000 ->
+        d_r (k -. f *. e1) (k -. f *. e2) <=. f
+
+end

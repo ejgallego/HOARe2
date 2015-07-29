@@ -1,0 +1,284 @@
+theory Option
+  use export option.Option
+  lemma test : forall x : option 'a. x<>None -> exists y:'a. x=Some y
+end
+
+(* New inductive axiom *)
+theory DoubleInduction
+  use import list.List
+  type elt
+  predicate p (list elt) (list elt)
+  axiom Induction:
+    p (Nil: list elt) (Nil: list elt) ->
+    (forall x1 x2:elt. forall l1 l2:list elt. p l1 l2 -> p (Cons x1 l1) (Cons x2 l2)) ->
+    forall l1 l2:list elt. p l1 l2
+end
+
+(* Common definition for DP algorithms *)
+theory DP
+
+  use import Option
+  use import real.RealInfix
+  use import real.Abs as RAbs
+
+  use import list.List
+
+  (************************************************************************)
+  (* Distance over reals *)
+
+  function d_r (x1 x2 : real) : real = RAbs.abs (x1 -. x2)
+
+  (* This helps *)
+  lemma d_r_pos : forall x1 x2 : real.
+        0.0 <=. d_r x1 x2
+
+  (************************************************************************)
+  (* Distance over list of reals *)
+  function d_lr (l1 l2 : list real) : real  = match l1,l2 with
+    | Nil, Nil             -> 0.0
+    | Cons x xs, Cons y ys -> d_r x y +. d_lr xs ys
+    | _                    -> 0.0
+  end
+
+  (* EG: I wonder how well we can do with this alternative definition *)
+  (* predicate adjacent (l1 l2 : list real) = d_lr l1 l2 <=. 1.0 *)
+
+  (************************************************************************)
+  (* Adjacency predicate *)
+
+  predicate adjacent (l1 l2 : list real) = match l1,l2 with
+    | Nil, Nil -> true
+    | Cons x1 l1, Cons x2 l2 -> (RAbs.abs (x1 -. x2) <=. 1.0 /\ l1 = l2) \/
+                                (x1 = x2 /\ adjacent l1 l2)
+    | _ -> false
+  end
+
+  (************************************************************************)
+  (* Skeleton predicates for datatypes                                    *)
+
+  predicate list_skeleton (l1 l2 : list 'a) = match l1,l2 with
+    | Nil, Nil -> true
+    | Cons _ l1, Cons _ l2 -> list_skeleton l1 l2
+    | _        -> false
+  end
+
+end
+
+theory D_lr
+
+  use import Option
+  use import real.RealInfix
+  use import real.Abs as RAbs
+  use import list.List
+  use import DP
+
+  predicate d_lr_pos (l1 l2 : list real) =
+        0.0 <=. d_lr l1 l2
+
+  clone DoubleInduction with type elt = real, predicate p = d_lr_pos
+  lemma proof : forall l1 l2 : list real. d_lr_pos l1 l2 
+
+end
+
+theory D_lr_cons
+
+  use import Option
+  use import real.RealInfix
+  use import real.Abs as RAbs
+  use import list.List
+  use import DP
+  use import D_lr
+
+  predicate d_lr_cons (l1 l2 : list real) = forall x1 x2 : real.
+        d_lr l1 l1 <=. d_lr (Cons x1 l1) (Cons x2 l2)
+
+  clone DoubleInduction with type elt = real, predicate p = d_lr_cons
+  lemma proof : forall l1 l2 : list real. d_lr_cons l1 l2 
+
+end
+
+theory Eq_adjacent
+
+  use import Option
+  use import real.RealInfix
+  use import real.Abs as RAbs
+  use import list.List
+  use import DP
+  use import D_lr
+
+  predicate eq_adjacent (l1 l2 : list real) =
+        l1 = l2 -> adjacent l1 l2
+
+  clone DoubleInduction with type elt = real, predicate p = eq_adjacent
+  lemma proof : forall l1 l2 : list real. eq_adjacent l1 l2
+
+end
+
+theory D_lr_zero
+
+  use import Option
+  use import real.RealInfix
+  use import real.Abs as RAbs
+  use import list.List
+  use import DP
+  use import D_lr
+  use import D_lr_cons
+
+  predicate d_lr_z ( l1 l2 : list real) = l1 = l2 -> 0.0 = d_lr l1 l2
+
+  clone DoubleInduction with type elt = real, predicate p = d_lr_z
+  lemma proof : forall l1 l2 : list real. d_lr_z l1 l2
+
+end
+
+theory Adjacent_bound_tail_pre
+
+  use import Option
+  use import real.RealInfix
+  use import real.Abs as RAbs
+  use import list.List
+  use import DP
+  use import D_lr
+  use import D_lr_cons
+  use import D_lr_zero
+  use import Eq_adjacent
+
+  predicate adjacent_bound_tail_pre (l1 l2 : list real) = forall x1 x2 : real.
+        adjacent (Cons x1 l1) (Cons x2 l2) -> (d_r x1 x2 <=. 1.0 /\ 0.0 = d_lr l1 l2) \/
+                                              (d_r x1 x2 = 0.0 /\ d_lr l1 l2 <=. 1.0)
+
+  clone DoubleInduction with type elt = real, predicate p = adjacent_bound_tail_pre
+  lemma proof : forall l1 l2 : list real. adjacent_bound_tail_pre l1 l2
+
+end
+
+theory Adjacent_bound_tail
+
+  use import Option
+  use import real.RealInfix
+  use import real.Abs as RAbs
+  use import list.List
+  use import DP
+  use import D_lr
+  use import D_lr_cons
+  use import D_lr_zero
+  use import Eq_adjacent
+  use import Adjacent_bound_tail_pre
+
+  predicate adjacent_bound_tail (l1 l2 : list real) = forall x1 x2 : real.
+        adjacent (Cons x1 l1) (Cons x2 l2) -> d_lr l1 l2 <=. 1.0
+
+  (* clone DoubleInduction with type elt = real, predicate p = adjacent_bound_tail *)
+  lemma proof : forall l1 l2 : list real. adjacent_bound_tail l1 l2
+
+end
+
+theory Adjacent_sk
+
+  use import Option
+  use import real.RealInfix
+  use import real.Abs as RAbs
+  use import list.List
+  use import DP
+  use import D_lr
+  use import D_lr_cons
+  use import Eq_adjacent
+
+  predicate adj_sk ( l1 l2 : list real) = adjacent l1 l2 -> list_skeleton l1 l2
+
+  clone DoubleInduction with type elt = real, predicate p = adj_sk
+  lemma proof : forall l1 l2 : list real. adj_sk l1 l2
+end
+
+theory Eq_sk
+  use import Option
+  use import real.RealInfix
+  use import real.Abs as RAbs
+  use import list.List
+  use import DP
+  use import D_lr
+  use import D_lr_cons
+  use import Eq_adjacent
+  use import Adjacent_sk
+
+  predicate eq_sk  ( l1 l2 : list real) = l1 = l2 ->
+                 list_skeleton l1 l2
+
+  clone DoubleInduction with type elt = real, predicate p = eq_sk
+  lemma proof : forall l1 l2 : list real. eq_sk l1 l2
+
+end
+
+theory Rest
+
+  use import Option
+  use import real.RealInfix
+  use import real.Abs as RAbs
+  use import list.List
+  use import DP
+  use import D_lr
+  use import D_lr_cons
+  use import Eq_adjacent
+  use import Adjacent_bound_tail
+  use import Adjacent_sk
+  use import Eq_sk
+
+  lemma d_lr_pos : forall l1 l2 : list real.
+        0.0 <=. d_lr l1 l2
+
+  lemma d_lr_cons     : forall x1 x2 : real, l1 l2 : list real.
+        d_lr l1 l1 <=. d_lr (Cons x1 l1) (Cons x2 l2)
+
+  lemma eq_dist       : forall l1 l2 : list real.
+	l1 = l2 ->
+        d_lr l1 l2 = 0.0
+
+  lemma d_lr_head_tail : forall x1 x2 : real, xs1 xs2 : list real.
+        d_r x1 x2 +. d_lr xs1 xs2 = d_lr (Cons x1 xs1) (Cons x2 xs2)
+
+  (* Not very smart solvers *)
+  lemma d_lr_head_tail' : forall x1 x2 : real, xs1 xs2 l1 l2 : list real.
+        l1 = Cons x1 xs1 ->
+        l2 = Cons x2 xs2 ->
+        d_r x1 x2 +. d_lr xs1 xs2 = d_lr l1 l2
+
+  (* From eq_adjacent we can auto-prove adjacent_impl.
+     eq_adjacent needs induction on both lists
+  *)
+
+  lemma eq_adjacent   : forall l1 l2 : list real.
+        l1 = l2 -> adjacent l1 l2
+
+  lemma adjacent_impl : forall x1 x2 : real, l1 l2 : list real.
+        adjacent (Cons x1 l1) (Cons x2 l2) -> adjacent l1 l2
+
+  lemma adjacent_bound_head : forall x1 x2 : real, l1 l2 : list real.
+        adjacent (Cons x1 l1) (Cons x2 l2) -> d_r x1 x2 <=. 1.0
+
+  lemma adjacent_bound_tail : forall x1 x2 : real, l1 l2 : list real.
+        adjacent (Cons x1 l1) (Cons x2 l2) -> d_lr l1 l2 <=. 1.0
+
+  lemma adjacent_bound      : forall l1 l2 : list real.
+        adjacent l1 l2 -> d_lr l1 l2 <=. 1.0
+
+  (* Lemma about adjacency and distance: if we have a bound on
+     distance of the tail, the distance of the head plus the bound is
+     less than the total distance. *)
+
+  lemma adjacent_cons_bound : forall x1 x2 y1 y2 : real, xs1 xs2 l1 l2 : list real.
+        adjacent l1 l2             ->
+        l1 = Cons x1 xs1           ->
+        l2 = Cons x2 xs2           ->
+        d_r y1 y2 <=. d_lr xs1 xs2 ->
+        d_r (x1 +. y1) (x2 +. y2) <=. d_lr l1 l2
+
+  lemma adj_sk : forall l1 l2 : list real. adjacent l1 l2 -> list_skeleton l1 l2
+
+  lemma eq_sk  : forall l1 l2 : list 'a. l1 = l2 ->
+                 list_skeleton l1 l2
+
+  (* Limitation of Why3 polymorphism *)
+  lemma eq_sk'  : forall l1 l2 : list real. l1 = l2 ->
+                 list_skeleton l1 l2
+
+end

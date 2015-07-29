@@ -1,0 +1,88 @@
+theory ARLC
+  use import HighOrd
+  use import rlc.Distr
+
+  use import real.RealInfix
+
+  use import proj.Projs
+
+  use import nat.Nat
+
+  use import int.Int
+
+  use import int.Power
+
+  use import int.ComputerDivision
+
+  use import real.FromInt
+
+  use import list.List
+
+  use import list.Length
+
+  use import list.Append
+
+  use import dp.DP
+
+  use import binary.SmtHints
+
+  use import extra.Math
+
+  constant eps : real
+  constant lap : real -> real -> distr real
+  constant split : list real -> (list real, list real)
+  constant list_sum : list real -> real
+  constant binary : int -> list real -> distr (list (list real))
+  constant n : int
+  constant l1 : list real
+  constant l2 : list real
+  constant x1 : real
+  constant x2 : real
+  constant xs1 : list real
+  constant xs2 : list real
+  constant us : ()
+  constant y1 : real
+  constant y2 : real
+  constant ys1 : list real
+  constant ys2 : list real
+  constant us1 : ()
+  constant left1 : list real
+  constant left2 : list real
+  constant right1 : list real
+  constant right2 : list real
+  constant us2 : ()
+  constant kut : ()
+  constant kut1 : ()
+  constant cleftN1 : distr (list (list real))
+  constant cleftN2 : distr (list (list real))
+  constant crightN1 : distr (list (list real))
+  constant crightN2 : distr (list (list real))
+  axiom ax_19 : 0.000 <=. eps
+  axiom ax_17 :
+    forall l11:list real, l21:list real.
+     adjacent l11 l21 /\ length l11 >= 2 /\ length l21 >= 2 ->
+      length (fst (split @ l11)) = div (length l11) 2 /\
+       length (snd (split @ l11)) = div (length l11) 2 /\
+        length (fst (split @ l21)) = div (length l21) 2 /\
+         length (snd (split @ l21)) = div (length l21) 2 /\
+          (d_lr (fst (split @ l11)) (fst (split @ l21)) +.
+            d_lr (snd (split @ l11)) (snd (split @ l21))) <=. d_lr l11 l21 /\
+           adjacent (fst (split @ l11)) (fst (split @ l21)) /\
+            adjacent (snd (split @ l11)) (snd (split @ l21))
+  axiom ax_16 :
+    forall l11:list real, l21:list real.
+     adjacent l11 l21 -> d_lr l11 l21 = d_r (list_sum @ l11) (list_sum @ l21)
+  axiom ax_14 : n >= 0
+  axiom ax_13 :
+    adjacent l1 l2 /\ length l1 = power 2 n /\ length l2 = power 2 n
+  axiom ax_10 : l1 = Cons x1 xs1 /\ l2 = Cons x2 xs2
+  axiom ax_7 : xs1 = Cons y1 ys1 /\ xs2 = Cons y2 ys2
+  axiom ax_4 :
+    (split @ l1) = (left1, right1) /\ (split @ l2) = (left2, right2)
+  axiom ax_3 : length l1 >= 2 /\ length l2 >= 2
+  axiom ax_2 :
+    length left1 = div (length l1) 2 /\
+     length left2 = div (length l2) 2 /\
+      length right1 = div (length l1) 2 /\ length right2 = div (length l2) 2
+  goal ty_goal : (0.000 +. (0.000 +. (0.000 +. 0.000))) <=. 0.000
+end

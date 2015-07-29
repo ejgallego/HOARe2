@@ -1,0 +1,136 @@
+(* Two-level online counter *)
+open proj.Projs         in
+open nat.Nat            in
+open int.Int            in
+
+open list.List          in
+
+open dp.DP              in
+
+open extra.Math         in
+
+(* Cut *)
+let def eq_v (x :: {x :: real list | x<1> = x<2>}) : {l :: real list | l<1> = l<2> } = x
+in
+
+fun (eps : { eps : real | 0.0 <=. eps } )
+
+    (* The laplacian primitive *)
+    (lap : Pi (e : real)
+              (x :: real).
+               M [e *. d_r x<1> x<2>]
+                 { r :: real | r<1> = r<2> })
+
+    (* "Pure" function *)
+    (createsums : Pi (b :: real list) (h :: real list). real list)
+
+    (* Response functions. Coded for 2 agents. *)
+    (f1 :: { f :: Pi (sums : real list). real |
+             all (fun (l : real list) -> d_r (f<1> l) (f<2> l) <=. 1.0 )
+           }
+    )
+    (f2 : Pi (sums : real list). real)
+
+    (* Block size parameter for counter divided by num agents (2) *)
+    (q : nat)
+->
+
+let rec run (rounds :: { r :: nat | r<1> = r<2>} )
+            (togo   :: { t :: nat | t<1> = t<2> /\
+                                    nat_to_int t<1> <= nat_to_int q /\
+                                    nat_to_int t<1> <= nat_to_int rounds<1> } )
+            (acc    :: { a :: ((real list * real list) * real)
+                     | fst a<1> = fst a<2> /\ d_r (snd a<1>) (snd a<2>) <=.
+                       (nat_to_real q -. nat_to_real togo<1>) })
+            { struct rounds }
+       : M[ 2.0 *. eps *. (nat_to_real rounds<1>) -. ((nat_to_real togo<1>) *. eps) ]
+          { state :: ((real list * real list) * real)
+                   | fst state<1> = fst state<2> /\
+                     d_r (snd state<1>) (snd state<2>) <=. (nat_to_real q -. nat_to_real togo<1>) } =
+    match rounds with [
+       M[2.0 *. eps *. (nat_to_real rounds<1>)
+         -. ((nat_to_real togo<1>) *. eps)]
+       { state :: ((real list * real list) * real)
+         | fst state<1> = fst state<2> /\
+           d_r (snd state<1>) (snd state<2>) <=.
+           (nat_to_real q -. nat_to_real togo<1>) }
+    ]
+    | Zero -> munit acc
+    | Succ r' ->
+      match acc with [
+        M[ 2.0 *. eps *. nat_to_real rounds<1> -. nat_to_real togo<1> *. eps ]
+        { state :: ((real list * real list) * real)
+          | fst state<1> = fst state<2> /\
+            d_r (snd state<1>) (snd state<2>) <=.
+            (nat_to_real q -. nat_to_real togo<1>) }
+      ]
+      | (sums, cur) ->
+        match sums with [
+          M[ 2.0 *. eps *. nat_to_real rounds<1> -. nat_to_real togo<1> *. eps ]
+          { state :: ((real list * real list) * real)
+            | fst state<1> = fst state<2> /\
+              d_r (snd state<1>) (snd state<2>) <=.
+              (nat_to_real q -. nat_to_real togo<1>) }
+        ]
+        | (blocks, hist) ->
+          match togo with [
+            M[ 2.0 *. eps *. nat_to_real rounds<1> -. nat_to_real togo<1> *. eps ]
+            { state :: ((real list * real list) * real)
+              | fst state<1> = fst state<2> /\
+                d_r (snd state<1>) (snd state<2>) <=.
+                (nat_to_real q -. nat_to_real togo<1>) }
+          ]
+          | Zero -> (
+            match (lt_real (nat_to_real rounds) (nat_to_real q)) with [
+              M[ 2.0 *. eps *. nat_to_real rounds<1> -. nat_to_real togo<1> *. eps ]
+              { state :: ((real list * real list) * real)
+                | fst state<1> = fst state<2> /\
+                  d_r (snd state<1>) (snd state<2>) <=.
+                  (nat_to_real q -. nat_to_real togo<1>) }
+            ]
+            | True -> munit acc
+            | False ->
+              mlet thisblock = lap eps cur                       in
+              (* JH: Danger! Recursive call on not syntactic subterm... *)
+              run rounds q ((Cons thisblock blocks, hist), 0.0)
+            )
+          (* JH: Without parens, the matches run together and there's a type
+           * error. Hope the right thing is happening here... *)
+          | Succ t' ->
+            let stream1 :: { s1 :: real list | s1<1> = s1<2> }           = createsums blocks hist  in
+            let resp1   :: { r1 :: real      | d_r r1<1> r1<2> <=. 1.0 } = f1 stream1              in
+
+            mlet noisy1 = lap eps resp1 in [
+              M[ 2.0 *. eps *. (nat_to_real rounds<1>)
+                -. ((nat_to_real togo<1>) *. eps) ]
+              { state :: ((real list * real list) * real)
+                | fst state<1> = fst state<2> /\
+                  d_r (snd state<1>) (snd state<2>) <=.
+                  (nat_to_real q -. nat_to_real togo<1>) }
+            ]
+            let hist1   :: { h1 :: real list | h1<1> = h1<2> }  = Cons noisy1 hist        in
+            let stream2 :: { s2 :: real list | s2<1> = s2<2> }  = createsums blocks hist1 in
+            let resp2   :: { r2 :: real      | r2<1> = r2<2> }  = f2 stream2              in
+            mlet noisy2 = lap eps resp2                                                   in
+            let hist2   :: { h2 :: real list | h2<1> = h2<2> }  = Cons noisy2 hist1       in
+
+            let cur'    :: { c :: real
+              | d_r c<1> c<2> <=. nat_to_real q -. nat_to_real t'<1> }
+              = cur +. resp1 +. resp2      in
+
+            run r' t' ((blocks, hist2), cur')
+in
+
+let online (rounds :: { r :: nat | r<1> = r<2> /\ nat_to_int r<1> >= nat_to_int q } )
+         : M[ 2.0 *. eps *. nat_to_real rounds<1>] { sums :: real list | sums<1> = sums<2> } =
+
+  let  init : ((real list * real list) * real) = ((Nil, Nil), 0.0) in
+
+  mlet res  = run rounds q init in
+    let ret :: { r :: (real list * real list) | r<1> = r<2> } = (fst res) in
+    match ret with [ M { sums :: real list | sums<1> = sums<2> } ]
+    | (blocks, hist) ->
+      munit (eq_v (createsums blocks hist))
+in
+
+online

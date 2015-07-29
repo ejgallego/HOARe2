@@ -1,0 +1,31 @@
+(* DP histogram *)
+open list.List  in
+open dp.DP      in
+open extra.Math in
+
+(* Cut *)
+let def eq_v (x :: {x :: list real | x<1> = x<2>}) :
+         {l :: list real | l<1> = l<2> } = x
+in
+
+(* We assume laplacian and eps *)
+fun (eps : { eps : real | 0.0 <=. eps } )
+
+    (lap : Pi (e : real)
+              (x :: real).
+               M [e *. d_r x<1> x<2>] { r :: real | r<1> = r<2> })
+->
+
+let rec histogram (l :: { x :: list real | adjacent x<1> x<2> } )
+                  { struct l }
+      : M[ eps *. d_lr l<1> l<2> ] { r :: list real | r<1> = r<2> } =
+
+  match l with [ M[ eps *. d_lr l<1> l<2> ] { r :: list real | r<1> = r<2> } ]
+
+  | Nil       -> munit (eq_v Nil)
+  | Cons x xs ->
+      mlet y  = lap eps x    in
+      mlet ys = histogram xs in
+      munit (eq_v (Cons y ys))
+
+in histogram

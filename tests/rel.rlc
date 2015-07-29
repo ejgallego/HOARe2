@@ -1,0 +1,2 @@
+let id : Pi (x :: {z :: float | z<1> = z<2>}). float = fun (x :: float) -> x in
+id 3.0

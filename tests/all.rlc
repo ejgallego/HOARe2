@@ -1,0 +1,5 @@
+(* Example of forall *)
+
+let m : {r : real | all (fun (s : real) -> s <=. 0.0 \/ s >. 0.0) } = 3.0 in
+
+3

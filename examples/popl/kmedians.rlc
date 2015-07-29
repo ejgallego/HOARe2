@@ -1,0 +1,97 @@
+import "nat"  "Nat"       in
+import "int"  "Int"       in
+
+import "real" "PowerInt"  in
+
+import "list" "List"      in
+
+import "dp"       "DP"    in
+import "kmedians" "KM"    in
+
+(* Specialize to when the range is location pairs, should be polymorphic *)
+fun (bagdist    : Pi (b1 : loc bag) (b2: loc bag) . { d : real | 0.0 <=. d})
+
+    (filterfrom : Pi (b1 :: loc bag) (b2 :: loc bag) . loc bag)
+    (product    : Pi (b1 :: loc bag) (b2 :: loc bag) . loc bag)
+
+    (doSwap     : Pi (b1 :: (loc * loc)). (loc * loc))
+
+    (swapscore  : Pi (r : (loc * loc)).
+                     { s :: real | d_r s<1> s<2> <=. 1.0 })
+
+    (select     : Pi (n : nat) (b : loc bag). loc bag)
+
+    (loc2ExpMech : Pi (alpha : {a : real | 1.0 <=. a} )
+                      (db    :: { db :: loc bag | bagdist db<1> db<2> <=. 1.0 })
+                      (range :  (loc * loc) bag)
+                      (score :  Pi (db' :: { db' :: loc bag | bagdist db'<1> db'<2> <=. 1.0 })
+                                   (r : (loc * loc)).
+                                   { s :: real | d_r s<1> s<2> <=. 1.0 }).
+                  M[alpha] { q :: (loc * loc) | q<1> = q<2> })
+
+(* Specialize to when the range is bags of locations *)
+    (locsExpMech : Pi (alpha : {a : real | 1.0 <=. a} )
+                      (db :: { db :: loc bag | bagdist db<1> db<2> <=. 1.0 })
+                      (range : (loc bag) list)
+                      (score : Pi (db' :: { db' :: loc bag | bagdist db'<1> db'<2> <=. 1.0 })
+                                  (r : loc bag).
+                                  { s :: real | d_r s<1> s<2> <=. 1.0 }).
+                      M[alpha] { q :: loc bag | q<1> = q<2> })
+
+->
+
+let def pow : Pi (r : real). Pi (n : nat) . real =
+  fun (r : real) -> fun (n : nat) -> power r (nat_to_int n)
+in
+
+let def eq_res (l :: {l :: (loc bag) list | l<1> = l<2>} )
+      : {l :: (loc bag) list | l<1> = l<2>} = l
+in
+
+let rec kmaux (iter :: {i :: nat | i<1> = i<2>} )
+              (alpha : {a : real | 1.0 <=. a} )
+              (c : Pi (facs : loc bag)
+                      (dem :: { d ::  loc bag | bagdist d<1> d<2> <=. 1.0 }).
+                      { r :: real | d_r r<1> r<2> <=. 1.0 })
+              (init : loc bag)
+              (locs : loc bag)
+              (d :: { d :: loc bag | bagdist d<1> d<2> <=. 1.0 })
+      : M[pow alpha iter<1>] { l :: (loc bag) list | l<1> = l<2> } =
+
+  match iter with[ M[pow alpha iter<1>] { l :: (loc bag) list | l<1> = l<2> }]
+
+  | Zero -> munit (eq_res (Cons init Nil))
+  | Succ iter' ->
+    mlet sols = kmaux iter' alpha c init locs d in
+
+    match sols with[ M[pow alpha iter<1>] { l :: (loc bag) list | l<1> = l<2> }]
+
+    (* This branch should never happen, sols should never be empty. *)
+    | Nil -> munit (eq_res (Cons init Nil))
+    | Cons s ss ->
+      (* EG: FIXME *)
+      let outside : loc bag = filterfrom s locs in
+      let swaps   : loc bag = product s outside in
+      mlet swap = loc2ExpMech alpha locs swaps (swapscore c) in
+      munit (Cons (doSwap swap s) sols)
+in
+
+let kmedians (iter : nat)
+             (k : nat)
+             (alpha : {a : real | 1.0 <=. a} )
+             (c : Pi (facs : loc bag)
+                     (dem :: { d ::  loc bag | bagdist d<1> d<2> <=. 1.0 }).
+                { r :: real | d_r r<1> r<2> <=. 1.0 })
+             (locs : loc bag)
+             (demands ::
+                { d :: loc bag | bagdist d<1> d<2> <=. 1.0 })
+           : M[pow alpha iter<1>] { sol :: loc bag | sol<1> = sol<2> } =
+
+  mlet init      = select k locs in
+  mlet solutions = kmaux iter alpha c init locs demands in
+  locsExpMech alpha demands solutions
+    (fun (d : loc bag) ->
+      fun (sol : loc bag) ->
+        (c sol d))
+in
+kmedians

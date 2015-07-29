@@ -1,0 +1,92 @@
+open proj.Projs in
+open bool.Bool  in
+
+open nat.Nat    in
+
+open list.List  in
+
+(* Cut for bl *)
+let def bl_eq (x :: { l :: list bool | l<1> = l<2> })
+          :     { l :: list bool | l<1> = l<2> } = x
+in
+
+let def bbl_eq (x :: { l :: (bool * list bool) | l<1> = l<2> })
+           :     { l :: (bool * list bool) | l<1> = l<2> } = x
+in
+
+fun (flip   : M { b :: bool | b<1> = b<2> })
+
+    (prices : Pi (bids :: { bids :: list real | bids<1> = bids<2> }).
+                 { p :: real | p<1> = p<2> })
+
+    (expect : Pi (mu :: M { r :: (bool * list bool) | r<1> = r<2> } )
+                 (f  :: { f :: Pi ( fr :: { fr :: (bool * list bool) | fr<1> = fr<2>}) . real
+                        | all (fun (s : (bool * list bool)) -> f<1> s >=. f<2> s)
+                        }).
+                  { e :: real | e<1> >=. e<2> })
+
+    (split : Pi (mycoin :: bool)
+                (mybid  :: real)
+                (coins  :: { c :: list bool | c<1> = c<2> })
+                (bids   :: { b :: list real | b<1> = b<2> }).
+           { s :: (list real * list real) |
+                  (mycoin<1> = True  => (snd s<1> = snd s<2>)) /\
+                  (mycoin<1> = False => (fst s<1> = fst s<2>))
+           })
+
+    (fixedprice : Pi (v : real)
+                     (bid :: { b :: real | b<1> = v })
+                     (p : real).
+                  { u :: real | u<1> >=. u<2> })
+->
+
+let rec flipN (iter :: {i :: nat | i<1> = i<2>} )
+              { struct iter }
+      : M { l :: list bool | l<1> = l<2> } =
+
+  match iter with[ M { l :: list bool | l<1> = l<2> } ]
+  | Zero       -> munit (bl_eq Nil)
+  | Succ iter' -> mlet coins = flipN iter'          in
+                  mlet coin  = flip                 in
+                  munit (bl_eq (Cons coin coins))
+in
+
+let utility (v         :  real)
+            (bid       :: { b :: real               | b<1> = v    })
+            (otherbids :: { o :: list real          | o<1> = o<2> })
+            (groups    :: { l :: (bool * list bool) | l<1> = l<2> })
+       : { u :: real | u<1> >=. u<2> } =
+
+  match groups with[ { u :: real | u<1> >=. u<2> } ]
+  | (my, others) ->
+
+    (* let grouping :: { s :: (list real * list real) | *)
+    (*                   ( my<1> = True  => snd s<1> = snd s<2> ) /\ *)
+    (*                   ( my<1> = False => fst s<1> = fst s<2> ) *)
+    (*                 } *)
+    (*   = split my bid others otherbids in *)
+    (* match grouping with [ { u :: real | u<1> >=. u<2> } ] *)
+
+    match split my bid others otherbids with [ { u :: real | u<1> >=. u<2> } ]
+    | (g1, g2) ->
+      match my with [{ u :: real | u<1> >=. u<2> }]
+      | True  -> fixedprice v bid (prices g2)
+      | False -> fixedprice v bid (prices g1)
+in
+
+(* Could also refine otherbids to be length N *)
+let auction (n :: {n :: nat | n<1> = n<2>} )
+            (v : real)
+            (bid       :: { b  :: real      | b<1>  = v    })
+            (otherbids :: { ob :: list real | ob<1> = ob<2>})
+    : { u :: real | u<1> >=. u<2> } =
+
+  let grouping :: M { r :: (bool * list bool) | r<1> = r<2> } = (
+    mlet  mycoin = flip    in
+    mlet  coins  = flipN n in
+    munit (bbl_eq (mycoin, coins)))
+  in
+  expect grouping (utility v bid otherbids)
+in
+
+auction

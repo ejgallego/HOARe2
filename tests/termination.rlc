@@ -1,0 +1,14 @@
+import "int"  "Int"  in
+import "list" "List" in
+import "dp"   "DP"   in
+
+let rec length (l1 : real list)
+               (l2 : real list)
+               { struct l2 }
+      : int =
+  match l2 with [int]
+  | Nil       -> 0
+  | Cons x xs -> 1 + length l1 xs
+
+in length
+

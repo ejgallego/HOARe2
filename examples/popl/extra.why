@@ -1,0 +1,83 @@
+theory Math
+
+  (* Some extra maths facts and help for the SMTs *)
+  (* Be wary that every axiom increases checking time *)
+
+  use import real.RealInfix
+
+  lemma real_dis : forall r1 r2 : real.
+        0.0 <=. r1 ->
+        0.0 <=. r2 ->
+        r1  <=. r2 ->
+        r2 +. r1 <=. 2.0 *. r2
+
+  lemma mult_mon_right : forall e k : real.
+        0.0 <=. e   ->
+        0.0 <=. k   ->
+        k   <=. 1.0 ->
+        e *. k <=. e
+
+  lemma mult_mon : forall e k1 k2 : real.
+        0.0 <=. e   ->
+        0.0 <=. k1  ->
+        0.0 <=. k2  ->
+        k1  <=. k2 ->
+        e *. k1 <=. e *. k2
+
+  lemma mult_le_distr : forall e r1 r2 : real.
+        0.0 <=. e  ->
+        0.0 <=. r1 ->
+        0.0 <=. r2 ->
+        r1  <=. r2 ->
+        e *. r2 +. e *. r1 <=. 2.0 *. e *. r2
+
+  (* ******************************************************************** *)
+  (* Extra int <-> real facts. *)
+
+  use import int.Int
+  use import real.FromInt
+
+  lemma from_int_mon : forall x1 x2 : int.
+    x1 <= x2 -> from_int x1 <=. from_int x2
+
+  lemma from_int_mon2 : forall x1 x2 : int.
+    from_int x1 <=. from_int x2 -> x1 <= x2
+
+  (* ******************************************************************** *)
+  (* Division/powering facts. *)
+
+  use import int.Int
+  use import int.Power
+  use import int.ComputerDivision
+
+  lemma div2_power_int : forall n m : int.
+  n >= 1 /\ m = power 2 n -> div m 2 = power 2 (n - 1)
+
+  (* ******************************************************************** *)
+  (* From_int and lists. *)
+  use import list.List
+  use import list.Length
+
+  lemma length_succ_from_int : forall x1 : real, xs1 l1 : list real.
+        l1 = Cons x1 xs1 ->
+        from_int (length xs1) +. 1.0 = from_int (length l1)
+
+  lemma length_pos_from_int : forall x : int, l : list real.
+        length l <= x      ->
+        0.0 <=. from_int x
+
+  (* ******************************************************************** *)
+  (* The whole file has been verified but those two last axioms.          *)
+
+  (* ******************************************************************** *)
+
+  (* nth, length, and append *)
+  use import list.Append
+  use import list.NthNoOpt
+
+  lemma nth_last : forall i : int, l : list 'a, s : 'a.
+        length l = i -> nth i (l ++ Cons s Nil) = s
+
+  lemma nth_not_last : forall i : int, l : list 'a, s : 'a.
+        length l > i -> nth i (l ++ Cons s Nil) = nth i l
+end

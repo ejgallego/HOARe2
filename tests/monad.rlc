@@ -1,0 +1,8 @@
+let eps : {e : real | e = 1.0 } = 1.0 in
+let del : {d : real | d = 0.5 } = 0.5 in
+
+let try : M[eps, del] real  =
+    mlet  x = munit 0.0  in
+    munit x
+
+in try

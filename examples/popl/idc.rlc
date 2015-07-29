@@ -1,0 +1,91 @@
+open nat.Nat       in
+open int.Int       in
+
+open comp.Bool     in
+open extra.Math    in
+
+(* Datatypes for idc *)
+open idc.Types     in
+
+(* Transparent definitions *)
+let def eq_apx (apx :: { apx :: dbapprox | apx<1> = apx<2> })
+         : { apx :: dbapprox | apx<1> = apx<2> } = apx in
+
+(* Main function *)
+fun (eps : { eps : real | 0.0 <=. eps } )
+
+    (* This is an example of a file not using dp.why *)
+    (d_r : Pi (x1 : real) (x2 : real) . { r : real | 0.0 <=. r} )
+
+    (lap : Pi (e : real)
+              (x :: real).
+               M [e *. d_r x<1> x<2>] { r :: real | r<1> = r<2> })
+
+
+    (dist_db : Pi (db1 : db)
+                  (db2 : db). real) ->
+
+let rec idc (iter :: { i :: nat | i<1> = i<2> } )
+            (d :: { d :: db | dist_db d<1> d<2> <=. 1.0 })
+            (qs : queryclass)
+            (approx : dbapprox)
+            (dua : Pi (cur : dbapprox)
+                      (q : query)
+                      (ans : real).
+                      dbapprox
+            )
+            (dist :
+               Pi (eps' : real)
+                  (d :: { d :: db | dist_db d<1> d<2> <=. 1.0 })
+                  (apx : dbapprox)
+                  (qs : queryclass).
+                M[ eps' ] { q :: query | q<1> = q<2> }  )
+            (evaldb :
+               Pi (d :: { d :: db | dist_db d<1> d<2>  <=. 1.0 })
+                  (* That should be:
+                     (q :: { q :: query | q<1> = q<2> } ).
+                     note the current bug of using evaldb with badquery
+                  *)
+                  (q : query).
+                  { s :: real | d_r s<1> s<2> <=. 1.0 })
+            (evalapprox :
+               Pi (d : dbapprox)
+                  (q : query).
+                  real)
+            (thresh : real)
+            { struct iter }
+      : M [ 2.0 *. eps *. (nat_to_real iter<1>) ]
+      { apx :: dbapprox | apx<1> = apx<2> } =
+
+  match iter with[
+    M[2.0 *. eps *. (nat_to_real iter<1>)]
+    { apx :: dbapprox | apx<1> = apx<2> }
+  ]
+
+  | Zero -> munit (eq_apx approx)
+  | Succ iter' ->
+    mlet curapx   = idc iter' d qs approx dua dist evaldb evalapprox thresh in
+
+    mlet badquery = dist eps d approx qs                                    in
+
+    (* This cut is important, as we infer a type in which badquery is
+       not free, but eps is an upper bound *)
+    let kut :: M [ eps ] { apx :: dbapprox | apx<1> = apx<2> } = (
+    mlet ans      = lap  eps (evaldb d badquery)                           in
+
+    let apxans : real = evalapprox curapx badquery  in
+    let error  : real = d_r apxans ans              in
+
+    match le_real error thresh with [
+      M { apx :: dbapprox | apx<1> = apx<2> }
+    ]
+    | True  -> munit (eq_apx approx)
+    | False -> munit (eq_apx (dua curapx badquery ans))
+    ) in kut
+in
+
+idc
+
+(* With some imports, could also instantiate the dist as the exponential
+   mechanism, probably could code MW update rule too.
+*)

@@ -1,0 +1,52 @@
+open int .Int               in
+open int .EuclideanDivision in
+
+open real.FromInt           in
+
+open list.List              in
+open list.Length            in
+
+open proj.Projs             in
+
+open dp.DP                  in
+open extra.Math             in
+
+fun (eps : { eps : real | 0.0 <=. eps } )
+    (* Positive epsilon *)
+
+    (* The laplacian primitive *)
+    (lap : Pi (e : real)
+              (x :: real).
+               M [e *. d_r x<1> x<2>]
+                 { r :: real | r<1> = r<2> })
+->
+
+(* Smartsum parameter *)
+let q : { q : int | q = 10} = 10                                in
+
+let def eq_v (r :: { r :: (real * real * real * list real) | fth r<1> = fth r<2> })
+      : { r :: (real * real * real * list real) | fth r<1> = fth r<2> } = r
+in
+
+let rec smartSum (l :: { x :: list real | adjacent x<1> x<2> } ) :
+    M[ 2.0 *. eps ] { r :: (real * real * real * list real) |
+                               fth r<1> = fth r<2>
+                        } =
+  match l with [ M[ 2.0 *. eps ] { r :: (real * real * real * list real) |
+                                       fth r<1> = fth r<2> }
+               ]
+    | Nil       -> munit (eq_v (0.0, 0.0, 0.0, Nil))
+    | Cons x xs -> mlet rs = smartSum xs in
+
+      match rs with [ M[ 2.0 *. eps ] { r :: (real * real * real * list real) | fth r<1> = fth r<2> }]
+      | (y, ss, s, out) -> (
+           match eqp (mod (length out) q) 0 with [ M[ 2.0 *. eps ] { r :: (real * real * real * list real) |
+                                                     fth r<1> = fth r<2> }]
+           | True ->
+             mlet a = lap eps (x +. s)                     in
+             munit (eq_v (0.0, a +. ss, 0.0, Cons (a +. ss) out))
+           | False ->
+             mlet a = lap eps x                           in
+             munit (eq_v (a +. y, ss, x +. s, Cons (a +. y) out))
+     )
+in smartSum

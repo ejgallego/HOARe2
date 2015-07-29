@@ -1,0 +1,8 @@
+theory Types
+
+  type db         (* = DB  (list real)  *)
+  type query      (* = Q   (list real)  *)
+  type queryclass (* = QC  (list query) *)
+  type dbapprox   (* = DBA (list real)  *)
+
+end

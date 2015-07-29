@@ -1,0 +1,12 @@
+theory KM
+
+  use import rlc.Distr
+  use import HighOrd as HO
+
+  use import list.List
+  use import nat.Nat
+
+  type loc = L int
+  type bag 'a = Bag (list 'a)
+
+end

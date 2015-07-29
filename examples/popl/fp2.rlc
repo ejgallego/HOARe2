@@ -1,0 +1,17 @@
+(* Fixed price auction *)
+open comp.Bool in
+
+let fixedprice : { fp : Pi (v : real) (b : real) (p : real) . real |
+    all (fun (v : real)  ->
+    all (fun (b1 : real) ->
+    all (fun (b2 : real) ->
+    all (fun (p : real)  ->
+         b1 = v => fp v b1 p >=. fp v b2 p)))) } =
+  (fun (v : real) ->
+  (fun (b : real) ->
+  (fun (p : real) ->
+        match ge_real b p with [{ u :: real | u<1> >=. u<2> }]
+        | True  -> v -. p
+        | False -> 0.0
+  )))
+in fixedprice

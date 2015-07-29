@@ -1,0 +1,70 @@
+(* Sketch a theory for inductive nats *)
+theory Nat
+
+     type nat = Zero | Succ nat
+
+     predicate nat_skeleton (n1 n2 : nat) = match n1, n2 with
+     | Zero,    Zero    -> true
+     | Succ x1, Succ x2 -> nat_skeleton x1 x2
+     | _                -> false
+     end
+
+     lemma nat_sk : forall n1 n2 : nat.
+           n1 = n2 ->
+           nat_skeleton n1 n2
+
+     function nat_plus (x y : nat) : nat = match x with
+      | Zero    -> y
+      | Succ x' -> Succ (nat_plus x' y)
+     end
+
+     use import int.Int
+
+     use import real.RealInfix
+     use import real.FromInt
+
+     function nat_to_int (x : nat) : int = match x with
+      | Zero    -> 0
+      | Succ x' -> 1 + (nat_to_int x')
+     end
+
+     function nat_to_real (x : nat) : real =
+      from_int (nat_to_int x)
+
+(*
+     function nat_to_real (x : nat) : real = match x with
+      | Zero    -> 0.0
+      | Succ x' -> 1.0 +. (nat_to_real x')
+     end
+*)
+
+     (* Missing axioms for int to nat *)
+     function int_to_nat (x : int) : nat
+
+     lemma conv_int_nat_int : forall x : int.
+       0 <= x -> (nat_to_int (int_to_nat x)) = x
+
+     lemma conv_nat_int_nat : forall x : nat.
+      (int_to_nat (nat_to_int x)) = x
+
+     use import int.Int
+     use import real.RealInfix
+
+     (* Axioms about nat *)
+     axiom nat_int_pos  : forall n : nat. 0 <= nat_to_int n
+
+     axiom nat_int_plus : forall n1 n2 : nat. nat_to_int n1 + nat_to_int n2 = nat_to_int (nat_plus n1 n2)
+
+     axiom nat_real_pos : forall n : nat. 0.0 <=. nat_to_real n
+
+     axiom nat_real_plus : forall n1 n2 : nat. nat_to_real n1 +. nat_to_real n2 = nat_to_real (nat_plus n1 n2)
+
+(*
+     lemma conv_int_nat_real : forall x : int.
+       0 <= x -> (nat_to_real (int_to_nat x)) = from_int x
+*)
+
+     lemma conv_nat_int_real : forall x : nat.
+       (from_int (nat_to_int x)) = nat_to_real x
+
+end

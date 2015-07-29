@@ -1,0 +1,40 @@
+open int .Int     in
+open real.FromInt in
+
+open list.List    in
+open list.Length  in
+
+open proj.Projs   in
+
+open dp.DP        in
+open extra.Math   in
+
+(* Positive epsilon *)
+fun (eps : { eps : real | 0.0 <=. eps } )
+
+    (* The laplacian primitive *)
+    (lap : Pi (e : real)
+              (x :: real).
+               M [e *. d_r x<1> x<2>]
+                 { r :: real | r<1> = r<2> })
+->
+
+let eq_v (x :: {l :: (real * list real) | l<1> = l<2> })
+         :     {l :: (real * list real) | l<1> = l<2> } = x                    in
+
+let rec dummySum (l :: { x :: list real | adjacent x<1> x<2> })
+                 {struct l}
+      : M[ eps *. d_lr l<1> l<2> ] { r :: (real * list real) | r<1> = r<2> } =
+
+  match l with [ M[ eps *. d_lr l<1> l<2> ] { r :: (real * list real) | r<1> = r<2> } ]
+
+    | Nil       -> munit (eq_v (0.0, Nil))
+    | Cons x xs -> mlet yys = dummySum xs                                      in
+                   (* EG: Could we do other annotations here? *)
+                   match yys with [ M[ eps *. d_r x<1> x<2> ]
+                                    { r :: (real * list real) | r<1> = r<2> } ]
+                   | (y, ys) ->
+                     mlet a = lap eps x                                        in
+                     munit (eq_v (a +. y, Cons (a +. y) ys))
+
+in dummySum

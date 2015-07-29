@@ -1,0 +1,33 @@
+theory Projs
+
+  function fst (x : ('a, 'b)) : 'a =
+  match x with
+  |  r, _ -> r
+  end
+
+  function snd (x : ('a, 'b)) : 'b =
+  match x with
+  |  _, r -> r
+  end
+
+  function fst3 (x : ('a, 'b, 'c)) : 'a =
+  match x with
+  | r, _, _ -> r
+  end
+
+  function snd3 (x : ('a, 'b, 'c)) : 'b =
+  match x with
+  | _, r, _ -> r
+  end
+
+  function thd3 (x : ('a, 'b, 'c)) : 'c =
+  match x with
+  | _, _, r -> r
+  end
+
+  function fth (x : ('a, 'b, 'c, 'd)) : 'd =
+  match x with
+  |  _, _, _, r -> r
+  end
+
+end

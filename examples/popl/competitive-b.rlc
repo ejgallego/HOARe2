@@ -1,0 +1,103 @@
+open proj.Projs in
+open bool.Bool  in
+
+open nat.Nat    in
+
+open list.List  in
+
+(* Cut for bl *)
+let def bl_eq (x :: { l :: list bool | l<1> = l<2> })
+          :     { l :: list bool | l<1> = l<2> } = x
+in
+
+(* Cut for reals *)
+let def r_eq (x :: { r :: real | r<1> = r<2> })
+          :    { r :: real | r<1> = r<2> } = x
+in
+
+fun (flip   : M { b :: bool | b<1> = b<2> })
+
+    (prices : Pi (bids :: { bids :: list real | bids<1> = bids<2> }).
+                 { p :: real | p<1> = p<2> })
+
+    (* Instead of using a higher order type for the expectation operator,
+       we use a fact about how the expectation operator interacts with the
+       lifted <= operator on reals. This version of expectation has type:
+
+       expectFO : Pi (mu :: M[1,0] { r:: real | r<1> <=. r<2> }).
+       { e :: real | e<1> <=. e<2> }
+
+       We can actually generalize this to M[alpha, delta]:
+
+       expectFO : Pi (mu :: M[a,d] { r:: real | r<1> <=. r<2> /\ r<2> <=. L }).
+       { e :: real | e<1> <=. a * e<2> + d * L }
+
+       Note that we now need a bound (L) on the max value in the support of the
+       distribution.
+
+       These facts will be important for the summarization games example---it's how we
+       can move from a distribution on utilities, to really saying that the expected
+       utility doesn't go up by much when an agent deviates from truthtelling. That is,
+       this is the approximate equilibrium fact.
+    *)
+
+    (expectFO : Pi (mu :: M { r :: real | r<1> >=. r<2> } ).
+                   { e :: real | e<1> >=. e<2> })
+
+    (split : Pi (mycoin :: bool)
+                (mybid :: real)
+                (coins :: { c :: list bool | c<1> = c<2> })
+                (bids  :: { b :: list real | b<1> = b<2> }).
+           { s :: (list real * list real) |
+                  (mycoin<1> = True  => (snd s<1> = snd s<2>)) /\
+                  (mycoin<1> = False => (fst s<1> = fst s<2>))
+           })
+
+    (fixedprice : Pi (v : real)
+                     (bid :: { b :: real | b<1> = v })
+                     (p : real).
+                  { u :: real | u<1> >=. u<2> })
+->
+
+let rec flipN (iter :: {i :: nat | i<1> = i<2>} )
+              { struct iter }
+      : M { l :: list bool | l<1> = l<2> } =
+  match iter with[ M { l :: list bool | l<1> = l<2> } ]
+  | Zero       -> munit (bl_eq Nil)
+  | Succ iter' -> mlet coins = flipN iter'          in
+                  mlet coin  = flip                 in
+                  munit (bl_eq (Cons coin coins))
+in
+
+let utility (n :: {n :: nat | n<1> = n<2>} )
+            (v : real)
+            (bid :: { b ::  real | b<1> = v })
+            (otherbids : list real)
+          : M { u :: real | u<1> >=. u<2> } =
+  mlet my     = flip    in
+  mlet others = flipN n in
+
+  (* let grouping :: { s :: (list real * list real) | *)
+  (*                    (my<1> = True  => (snd s<1> = snd s<2>)) /\ *)
+  (*                    (my<1> = False => (fst s<1> = fst s<2>)) *)
+  (*                } = split my bid others otherbids in *)
+
+  (* match grouping with[ M { u :: real | u<1> >=. u<2> } ] *)
+  match split my bid others otherbids with[ M { u :: real | u<1> >=. u<2> } ]
+  | (g1, g2) ->
+    match my with [M { u :: real | u<1> >=. u<2> }]
+    | True  -> munit (fixedprice v bid (prices g2))
+    | False -> munit (fixedprice v bid (prices g1))
+in
+
+(* Could also refine otherbids to be length N *)
+let auction (n :: {n :: nat | n<1> = n<2>} )
+            (v : real)
+            (bid :: { b ::  real | b<1> = v })
+            (otherbids : list real)
+          : { u :: real | u<1> >=. u<2> } =
+
+  expectFO (utility n v bid otherbids)
+in
+
+auction

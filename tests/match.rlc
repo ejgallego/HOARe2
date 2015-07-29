@@ -1,0 +1,7 @@
+import "bool" "Bool" in
+
+let f (x : bool) : real =
+  match x with [ real ]
+  | True  -> 0.0
+in
+f True

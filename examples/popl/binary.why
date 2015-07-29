@@ -1,0 +1,22 @@
+theory SmtHints
+
+  use import int.Int
+  use import int.Power
+  use import int.ComputerDivision
+
+  use import real.RealInfix
+
+  use import list.List
+  use import list.Length
+
+  lemma length_pos : forall l1 ll1 : list real, x1 : real.
+        l1 = Cons x1 ll1 ->
+        length l1 >= 0
+
+  lemma dist_length_n : forall l ls : list real, n : int.
+    n >= 1                       ->
+    length l  = power 2 n        ->
+    length ls = div (length l) 2 ->
+    length ls = power 2 (n - 1)
+
+end

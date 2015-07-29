@@ -1,0 +1,161 @@
+(* Some definitions and predicates for HKM. *)
+(* Mostly dealing with extending VCG. *)
+
+theory HKM
+  use import int.Int
+  use import nat.Nat
+  use import list.List
+  use import list.HdTlNoOpt
+  use import list.NthNoOpt
+  use import list.Permut
+  use import list.Length
+  use import list.Mem
+  use import real.RealInfix
+  use import rlc.Distr
+  use HighOrd
+
+  (* Functional extensionality for why3. *)
+  axiom w_ext : forall f g : 'a -> 'b.
+        (forall x : 'a . f x = g x) -> f = g
+
+
+  type ty (* Type of agent types. *)
+  type oc (* Type of outcomes. *)
+
+  predicate differAt (i : nat) (l1 l2 : list 'a) = match i with
+    | Zero -> match l1,l2 with
+              | Cons _ l1, Cons _ l2 -> l1 = l2
+              | _ -> false
+              end
+    | Succ i' -> match l1,l2 with
+                 | Cons x1 l1, Cons x2 l2 -> x1 = x2 /\ differAt i' l1 l2
+                 | _ -> false
+                 end
+  end
+
+  predicate allPerms (l : list 'a) (l' : list (list 'a)) = match l' with
+    | Nil -> true
+    | Cons x l' -> permut l x /\ allPerms l l'
+  end
+
+  lemma memAllPerms : forall s, x : list 'a, r : list (list 'a).
+    allPerms s r -> mem x r -> permut s x
+
+  (* Takes a list of functions A -> R, and makes the sum function A -> R. *)
+  (* EG: Needs to be used curried, so we use  *)
+  function sumFuns (funs : list ('a -> real)) (alloc : 'a) : real =
+    match funs with
+    | Nil -> 0.0
+    | Cons f fs -> f alloc +. sumFuns fs alloc
+    end
+
+  function sumFuns1 (funs : list ('a -> real)) : 'a -> real = \ alloc : 'a .
+    sumFuns funs alloc
+
+    (* Takes a list and trims out the ith element. *)
+  function allBut (i : nat) (l : list 'a) : list 'a =
+    match i with
+    | Zero -> tl l
+    | Succ i' -> allBut i' (tl l)
+    end
+
+  lemma allButDiff : forall i : nat, l1 l2 : list 'a. differAt i l1 l2 ->
+    allBut i l1 = allBut i l2
+
+  lemma sumAllBut : forall i : nat, alloc : 'a, fs : list ('a -> real).
+    nat_to_int i < length fs ->
+    sumFuns (allBut i fs) alloc +. (nth (nat_to_int i) fs) alloc = sumFuns fs alloc
+
+  function insertAt (i : nat) (x : 'a) (l : list 'a) : list 'a =
+    match i with
+    | Zero -> Cons x l
+    | Succ i' -> Cons (hd l) (insertAt i' x (tl l))
+    end
+
+  lemma insertAtZero : forall x : 'a, l : list 'a.
+    insertAt Zero x l = Cons x l
+
+  lemma nthInsertAt : forall x : 'a, l : list 'a, i : nat.
+    nat_to_int i <= length l ->
+    nth (nat_to_int i) (insertAt i x l) = x
+
+  lemma insertAtDifferAt : forall i : nat, x1, x2 : 'a, l1, l2 : list 'a.
+    nat_to_int i <= length l1 ->
+    l1 = l2 ->
+      differAt i (insertAt i x1 l1) (insertAt i x2 l2)
+
+  lemma insertAtLength : forall i : nat, x : 'a, l : list 'a.
+    (nat_to_int i) <= length l ->
+    length (insertAt i x l) = (length l) + 1
+
+  function repeat (n : nat) (x : 'a) : list 'a =
+    match n with
+    | Zero -> Nil
+    | Succ n' -> Cons x (repeat n' x)
+    end
+
+  function seqM (l : list (distr 'a)) : distr (list 'a)
+  = match l with
+    | Nil -> munit Nil
+    | Cons x xs ->
+        mbind x (\ p : 'a .
+          mbind (seqM xs) (\ ps : list 'a .
+            munit (Cons p ps)))
+    end
+
+  function sampleAndApply (mu : distr 'a) : ('a -> distr 'a) -> distr 'a
+    = \ f : ('a -> distr 'a) . mbind mu (\ t : 'a. f t)
+
+  (* Unsure how to use the map theory... is it HO? *)
+  function mapHO (f : 'a -> 'b) (l : list 'a) : list 'b
+
+  (* Corresponds to axiom in why3/obligation in EC. *)
+  predicate distPres (mu : distr 'a) (f : 'a -> distr 'a) = true
+
+    (* TODO *)
+    (* (sampleAndApply mu f = mu) *)
+
+  predicate allPres (mu : distr 'a) (l : list ('a -> distr 'a)) =
+    match l with
+    | Nil -> true
+    | Cons x xs -> distPres mu x /\ allPres mu xs
+    end
+
+  lemma allPresUnpack : forall n : nat, mu : distr ty, l : list (ty -> distr ty).
+  length l = (nat_to_int n) ->
+  allPres mu l ->
+    repeat n mu = mapHO (sampleAndApply mu) l
+
+  function enumPerms (ground : list ty) : list (list ty)
+
+  lemma enumPermsLength : forall g : list ty.
+    length (enumPerms g) > 0
+
+  lemma enumPermsPerm : forall g, p : list ty.
+    mem p (enumPerms g) -> permut g p
+
+  lemma enumPermsAll : forall g.
+    allPerms g (enumPerms g)
+
+  function findMax (obj : list ty -> real) (r : list (list ty)) : list ty
+
+  lemma findMaxMem : forall obj : list ty -> real, r : list (list ty).
+    length r > 0 -> mem (findMax obj r) r
+
+  lemma findMaxMax :
+    forall obj : list ty -> real, x : list ty, r : list (list ty).
+    length r > 0 -> mem x r -> obj x <=. obj (findMax obj r)
+
+  function mapIdxPrices (sz : int) (f : nat -> real) : list real
+    
+  lemma mapIdxPricesDef : forall i, sz : int, f : nat -> real.
+    0 <= i ->
+      i < sz ->
+        0 <= sz ->
+          (nth i (mapIdxPrices sz f)) = f (int_to_nat i)
+
+  lemma mapIdxPricesLen : forall sz : int, f : nat -> real.
+    0 <= sz -> length (mapIdxPrices sz f) = sz
+
+
+end
