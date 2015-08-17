@@ -13,10 +13,6 @@
    existing libraries used.
 *)
 
-let rec last l = match l with
-  | [x] -> x
-  | x :: xs -> last xs
-
 let get_terminal_size () =
 
   (* let in_channel = Unix.open_process_in "tput cols" in *)
