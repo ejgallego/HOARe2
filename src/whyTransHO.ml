@@ -28,27 +28,24 @@ module ES = Exp.ExpState
 module L  = EcLocation
 module P  = Print
 
-open Support.Error
-module Opts = Support.Options
-
-open WhyHacks
-
 (* Printing routines *)
 open Format
 
-let dummy_e = L.mk_loc L._dummy @@ EC.exp_unit
+open Support.Error
+let err_domain = Support.Options.SMT
 
-let why_error   fi   = error_msg Opts.SMT fi
-let why_warning fi   = message 1 Opts.SMT fi
-let why_info    fi   = message 2 Opts.SMT fi
-let why_info2   fi   = message 3 Opts.SMT fi
-let why_debug   fi   = message 4 Opts.SMT fi
-let why_debug2  fi   = message 5 Opts.SMT fi
-let why_debug3  fi   = message 6 Opts.SMT fi
+let why_error   fi   = error_msg err_domain fi
+let why_warning fi   = message 1 err_domain fi
+let why_info    fi   = message 2 err_domain fi
+let why_info2   fi   = message 3 err_domain fi
+let why_debug   fi   = message 4 err_domain fi
+let why_debug2  fi   = message 5 err_domain fi
+let why_debug3  fi   = message 6 err_domain fi
 
 (* Non-translatable things can be recovered *)
 exception BailTranslation
 
+let dummy_e     = L.mk_loc L._dummy @@ EC.exp_unit
 let reloc e_l e = L.mk_loc e_l.L.pl_loc e
 
 (************************************************************************ *)
@@ -420,7 +417,7 @@ let rec exp_to_dterm wst (e : exp) =
     let (w_vs, w_st) = add_variable wst bi w_dty                        in
 
     (* We only allow non-relational bindings for now, the bug is
-       deeper given the scheme we are following*)
+       deeper given the scheme we are following *)
     begin match w_vs with
     | [Some v_n, v_ty, _] ->
       let w_l          = exp_to_dterm w_st e_l                          in

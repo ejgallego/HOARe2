@@ -218,7 +218,7 @@ let resolve_why3_theory th_i =
       with
         WEnv.LibraryNotFound f -> why_error _d "File not found %s" (List.nth f 0)
       (* TODO: integrate with Exn_printer *)
-      | Loc.Located (p, _exn)  -> why_error _d "Why3 syntax error at %a" Loc.report_position p
+      | Loc.Located (p, _exn)  -> why_error _d "Why3 problem at %a" Loc.report_position p
     end
   end
 
