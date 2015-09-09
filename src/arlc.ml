@@ -109,6 +109,9 @@ let main () =
   set_pp Format.std_formatter;
   set_pp Format.err_formatter;
 
+  main_info dp "Effective list of SMT to be used: @[%a@]"
+            (Print.pp_list_sep "," Print.pp_str) ArlcSolver.solvers;
+
   (* Read the command-line arguments *)
   infile  := parseArgs();
 

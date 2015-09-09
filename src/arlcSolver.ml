@@ -48,9 +48,10 @@ let get_driver (cfg : Whyconf.config_prover) : Driver.driver =
     exit 1
 *)
 
-let solvers = ["Alt-Ergo"; "CVC4"]
-let solvers = ["Alt-Ergo"; "CVC4"; "Eprover"; "CVC3"]
-let solvers = ["Alt-Ergo"; "CVC4"; "Eprover"; "CVC3"; "Coq"]
+let main_solvers = ["Alt-Ergo"; "CVC4"; "Eprover"; "CVC3"; "Coq"]
+let main_solvers = ["Alt-Ergo"; "CVC4"; "Eprover"; "CVC3"]
+
+let solvers = List.filter EcProvers.is_prover_known main_solvers
 
 (* let s_cfg  = List.map get_solver solvers *)
 (* let s_drv  = List.map get_driver s_cfg *)
@@ -92,10 +93,13 @@ let write_task_file file theories ths task =
   close_out oc
 
 let write_coq_file file task =
-  let oc         = open_out (file ^ ".v")             in
-  let ofmt       = Format.formatter_of_out_channel oc in
-  let (_, _, dr) = EcProvers.get_prover "Coq"         in
-  Driver.print_task dr ofmt task
+  if EcProvers.is_prover_known "Coq" then
+    let oc         = open_out (file ^ ".v")             in
+    let ofmt       = Format.formatter_of_out_channel oc in
+    let (_, _, dr) = EcProvers.get_prover "Coq"         in
+    Driver.print_task dr ofmt task
+  else
+    why_warning dummy_e "Trying to print Coq file, but it is not supported by Why3."
 
 let tlimit : int ref = ref 20
 let mlimit : int ref = ref 1100
