@@ -51,7 +51,7 @@ let get_driver (cfg : Whyconf.config_prover) : Driver.driver =
 let main_solvers = ["Alt-Ergo"; "CVC4"; "Eprover"; "CVC3"; "Coq"]
 let main_solvers = ["Alt-Ergo"; "CVC4"; "Eprover"; "CVC3"]
 
-let solvers = List.filter EcProvers.is_prover_known main_solvers
+let solvers () = List.filter EcProvers.is_prover_known main_solvers
 
 (* let s_cfg  = List.map get_solver solvers *)
 (* let s_drv  = List.map get_driver s_cfg *)
@@ -131,7 +131,7 @@ let post ext theories decls axioms ass loc = try
 
     let arlc_pi = {
       pr_maxprocs  = 2;
-      pr_provers   = solvers;
+      pr_provers   = solvers ();
       pr_timelimit = !tlimit;
       pr_wrapper   = None;
     } in
