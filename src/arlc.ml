@@ -41,7 +41,7 @@ let argDefs = [
   "--enable-exp-annot",Arg.Unit (fun () -> debug_options := {!debug_options with exp_ann  = true} ),  "Enable printing of expression annotations" ;
   "--print-var-full",  Arg.Unit (fun () -> debug_options := {!debug_options with var_output = PrVarBoth} ), "Print names and indexes of variables" ;
   "--print-var-index", Arg.Unit (fun () -> debug_options := {!debug_options with var_output = PrVarIndex}), "Print just indexes of variables" ;
-  "--print-var-num", Arg.Unit (fun () -> debug_options := {!debug_options with var_output = PrVarNum}), "Prints a generated name from the index, very useful when user names are ambiguous" ;
+  "--print-var-num",   Arg.Unit (fun () -> debug_options := {!debug_options with var_output = PrVarNum}), "Prints a generated name from the index, very useful when user names are ambiguous" ;
 ]
 
 let loci loc = L.mk_loc loc ()
@@ -108,6 +108,10 @@ let main () =
 
   set_pp Format.std_formatter;
   set_pp Format.err_formatter;
+
+  (* Set up the common-lib dir *)
+  let clib_dir = Filename.dirname @@ Array.get Sys.argv 0 in
+  add_why_path @@ clib_dir ^ "/lib-common/";
 
   (* Read the command-line arguments *)
   infile  := parseArgs();

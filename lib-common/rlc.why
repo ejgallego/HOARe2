@@ -10,10 +10,12 @@ theory Distr
 
   (* Builtin skeletons *)
 
-  predicate tuple0_skeleton (t1 t2: ())                = true
-  predicate tuple2_skeleton (t1 t2 : ('a, 'b))         = true
-  predicate tuple3_skeleton (t1 t2 : ('a, 'b, 'c))     = true
-  predicate tuple4_skeleton (t1 t2 : ('a, 'b, 'c, 'd)) = true
+  predicate tuple0_skeleton (t1 t2: ())                        = true
+  predicate tuple2_skeleton (t1 t2 : ('a, 'b))                 = true
+  predicate tuple3_skeleton (t1 t2 : ('a, 'b, 'c))             = true
+  predicate tuple4_skeleton (t1 t2 : ('a, 'b, 'c, 'd))         = true
+  predicate tuple5_skeleton (t1 t2 : ('a, 'b, 'c, 'd, 'e))     = true
+  predicate tuple6_skeleton (t1 t2 : ('a, 'b, 'c, 'd, 'e, 'f)) = true
 
   use import bool.Bool
 
