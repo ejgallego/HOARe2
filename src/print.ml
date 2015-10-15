@@ -212,13 +212,18 @@ let prim_special s = match s with
   | "all" -> (u_sym Symbols.Forall)
   | _     -> s
 
+let somty mt = match mt with
+  | Fdistance -> "f"
+
 let somu tm = match tm with
   | PMonad -> "munit"
   | CMonad -> "cunit"
+  | DMonad -> "dunit"
 
 let soml tm = match tm with
   | PMonad -> "mlet"
   | CMonad -> "clet"
+  | DMonad -> "dlet"
 
 let sotc tc = match tc with
   | None -> ""
@@ -309,9 +314,10 @@ and pp_ty_r   ppf ty_r =
   (* | TVar tv              -> fprintf ppf "@[%a@]@@(%x)" pp_tvar !tv (2 * (Obj.magic tv)) *)
   | TQVar v              -> fprintf ppf "'%s" v
   | TPrim(tc, targs)     -> pp_ty_ind ppf tc targs
-  | TC ty                -> fprintf ppf "@[<hov 1>C@;@[<1>%a@]@]" pp_ty ty
   | TPi (bi, tya, ty)    -> pp_special_pi ppf bi tya ty
-  | TM (ea, ed, ty)      -> fprintf ppf "@[<hov 1>M[@[%a@],@;@[%a@]]@;@[<1>%a@]@]" pp_exp ea pp_exp ed pp_ty ty
+  | TC ty                -> fprintf ppf "@[<hov 1>C@;@[<1>%a@]@]" pp_ty ty
+  | TM (ea,  ed, ty)     -> fprintf ppf "@[<hov 1>M[@[%a@],@;@[%a@]]@;@[<1>%a@]@]" pp_exp ea pp_exp ed pp_ty ty
+  | TG (mty, ed, ty)     -> fprintf ppf "@[<hov 1>D_%s[@[%a@]]@;@[<1>%a@]@]" (somty mty) pp_exp ed pp_ty ty
   | TRef (bi, ty, fo)    -> fprintf ppf "@[<hov 2>{ @[%a@]@;|@[<1> %a@] }@]" pp_bi (bi, ty) pp_exp fo
   (* | TPair (ty1, ty2)     -> fprintf ppf "(%a * %a)" pp_ty ty1 pp_ty ty2 *)
 

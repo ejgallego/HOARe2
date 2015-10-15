@@ -1,0 +1,7 @@
+let faf : {e : real | e = 1.0 } = 1.0 in
+
+let try : D _ f [faf] real  =
+    dlet  x = munit 0.0  in
+    dunit x
+
+in try

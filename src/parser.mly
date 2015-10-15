@@ -113,9 +113,11 @@
 (* %token CLEAR *)
 (* %token CLONE *)
 %token CLET
+%token DLET
 %token COLON
 %token COMMA
 %token CUNIT
+%token DUNIT
 (* %token COMPUTE *)
 (* %token CONGR *)
 (* %token CONS *)
@@ -195,8 +197,9 @@
 %token MLET
 (* %token MODPATH *)
 (* %token MODULE *)
-%token PMONAD
 %token CMONAD
+%token DMONAD
+%token PMONAD
 %token MUNIT
 (* %token NE *)
 (* %token NIL *)
@@ -272,7 +275,7 @@
 (* %token TRUE *)
 %token TRUST
 (* %token TYPE *)
-(* %token UNDERSCORE *)
+%token UNDERSCORE
 (* %token UNDO *)
 (* %token UNROLL *)
 (* %token USING *)
@@ -539,10 +542,12 @@ async_ann:
 munit:
 | MUNIT { PMonad }
 | CUNIT { CMonad }
+| DUNIT { DMonad }
 
 mlet:
 | MLET { PMonad }
 | CLET { CMonad }
+| DLET { DMonad }
 
 (* FIXME: Use nonempty_list(pattern) *)
 (* Non-empty Patterns *)
@@ -843,6 +848,13 @@ ty:
    { fun env ->
      let zero = mk_loc m.pl_loc @@ EConst (ECReal 0.0) in
      mk_loc m.pl_loc (TM(zero, zero, t env), None)
+   }
+
+(* Dmonad *)
+| m=loc(DMONAD) UNDERSCORE d=lident a=brackets(exp) t=ty
+   { fun env ->
+     let mty = Fdistance in
+     mk_loc m.pl_loc (TG(mty, a env, t env), None)
    }
 
 (* Version without delta *)

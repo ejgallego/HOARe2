@@ -786,6 +786,15 @@ let rec type_of e_st e : ty =
       rtype_of e_st e e ret_ty
 
     (*******************************************************************)
+    (* DUnit/DLet                                                      *)
+    (*******************************************************************)
+    | EMUnit (DMonad _, e_u)                                             ->
+      typing_error e_st "dunit not implemented"
+
+    | EMLet(DMonad _, b1, ty_a, e1, e2)                                  ->
+      typing_error e_st "dlet not implemented"
+
+    (*******************************************************************)
     (* MUnit                                                           *)
     (*******************************************************************)
 
@@ -1134,6 +1143,24 @@ and wf_type ty_st ty = match ty_u ty with
 
   | TC   ty                      ->
     wf_type ty_st ty
+
+  | TG   (mty, e_d, ty_m)        ->
+
+    let check_type_m_float st e =
+      let ty_e = type_of st e in
+      check_subtype st ty_e (EB.mk_ty_float st)
+    in
+
+    (* We are in assertion mode for α, δ *)
+    let m_st = ES.enable_ass ty_st in
+
+    ty_info2 m_st "s-> Entering the simply typed world!";
+
+    check_type_m_float m_st e_d;
+
+    ty_info2 m_st "s<- Exiting the simply typed world!";
+
+    wf_type ty_st ty_m
 
   | TM   (e_a, e_d, ty_m)        ->
 

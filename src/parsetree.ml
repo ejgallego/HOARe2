@@ -100,9 +100,14 @@ type tprim_info = th_info * string
 type pattern_r = (cons_info * binder_info list)
 and pattern = pattern_r located
 
+(* Empty for now *)
+type dmonad_type =
+| Fdistance
+
 type monad_type =
 | PMonad
 | CMonad
+| DMonad
 
 type exp_r =
   (* Ummm  *)
@@ -163,8 +168,11 @@ and ty_r =
   (* Partiality Monad *)
   | TC       of ty
 
-  (* Relational Probability Type *)
+  (* Distribution Type with eps-delta distance *)
   | TM       of exp * exp * ty
+
+  (* Generic Probability Monad *)
+  | TG       of dmonad_type * exp * ty
 
   (* Function and refinement types *)
   | TPi      of binder_info * ty * ty
@@ -299,6 +307,7 @@ module Fold = struct
     f_tprim  : ('e_ty * 'e_ty) option * tprim_info * 't_ty list                -> 't_ty;
     f_tc     : ('e_ty * 'e_ty) option * 't_ty                                  -> 't_ty;
     f_tm     : ('e_ty * 'e_ty) option * 'e_ty * 'e_ty * 't_ty                  -> 't_ty;
+    f_tg     : ('e_ty * 'e_ty) option * dmonad_type * 'e_ty * 't_ty            -> 't_ty;
     f_pi     : ('e_ty * 'e_ty) option * binder_info * 't_ty * 't_ty            -> 't_ty;
     f_ref    : ('e_ty * 'e_ty) option * binder_info * 't_ty * 'e_ty            -> 't_ty;
   }
@@ -411,6 +420,9 @@ and ty_fold (ht : (ty_var ref, 't_var ref) Hashtbl.t)
                                let f_ty = ty_fold  ht ei fn_s ty    in
                                fn.f_tm (f_ann, f_a, f_d, f_ty)
 
+    | TG   (mty, e, ty)     -> let f_e  = exp_fold ht ei fn_s e     in
+                               let f_ty = ty_fold  ht ei fn_s ty    in
+                               fn.f_tg (f_ann, mty, f_e, f_ty)
     | TPi  (bi, ty_a, ty_r) -> let iei  = fn.f_inc bi ty_a ei       in
                                let f_a  = ty_fold ht  ei  fn_s ty_a in
                                let f_r  = ty_fold ht iei  fn_s ty_r in
@@ -464,6 +476,7 @@ and ty_fold (ht : (ty_var ref, 't_var ref) Hashtbl.t)
       f_tprim  = (fun (ann, typ, tyargs)       -> l_fn (TPrim (typ, tyargs), ann));
       f_tc     = (fun (ann, tyc)               -> l_fn (TC tyc, ann));
       f_tm     = (fun (ann, e_a, e_b, ty)      -> l_fn (TM (e_a, e_b, ty), ann));
+      f_tg     = (fun (ann, mty, e_d, ty)      -> l_fn (TG (mty, e_d, ty), ann));
       f_pi     = (fun (ann, bi, ty_a, ty_r)    -> l_fn (TPi (bi, ty_a, ty_r), ann));
       f_ref    = (fun (ann, bi, ty_r, e)       -> l_fn (TRef (bi, ty_r, e), ann));
     }
@@ -501,6 +514,7 @@ and ty_fold (ht : (ty_var ref, 't_var ref) Hashtbl.t)
     f_tprim  = (fun _ity  -> d);
     f_tc     = (fun _tyc  -> d);
     f_tm     = (fun _tym  -> d);
+    f_tg     = (fun _tyg  -> d);
     f_pi     = (fun _typ  -> d);
     f_ref    = (fun _tyr  -> d);
   }

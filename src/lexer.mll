@@ -27,6 +27,8 @@
     "munit"       , MUNIT      ;        (* KW: prog *)
     "clet"        , CLET       ;        (* KW: prog *)
     "cunit"       , CUNIT      ;        (* KW: prog *)
+    "dlet"        , DLET       ;        (* KW: prog *)
+    "dunit"       , DUNIT      ;        (* KW: prog *)
     "in"          , IN         ;        (* KW: prog *)
     "match"       , MATCH      ;        (* KW: prog *)
     "with"        , WITH       ;        (* KW: prog *)
@@ -43,8 +45,9 @@
     (* "float"       , FLOAT      ;        (\* KW: prog *\) *)
     "struct"      , STRUCT     ;        (* KW: prog *)
     "trust"       , TRUST      ;        (* KW: prog *)
-    "M"           , PMONAD     ;        (* KW: prog *)
     "C"           , CMONAD     ;        (* KW: prog *)
+    "D"           , DMONAD     ;        (* KW: prog *)
+    "M"           , PMONAD     ;        (* KW: prog *)
     "Pi"          , PI         ;        (* KW: prog *)
     (* "Prop"        , PROP       ;        (\* KW: prog *\) *)
     (* "list"        , LIST       ;        (\* KW: prog *\) *)
@@ -160,7 +163,7 @@ rule main = parse
   (*   }  *)
 
   (* punctuation *)
-  (* | '_'  { UNDERSCORE } *)
+  | '_'  { UNDERSCORE }
   | '('  { LPAREN }
   | ')'  { RPAREN }
   | '{'  { LBRACE }
