@@ -298,7 +298,8 @@
 (* %nonassoc prec_below_comma *)
 (* %nonassoc COMMA ELSE *)
 
-%nonassoc IN
+(* XXXX: Is this right? *)
+(* %nonassoc IN *)
 (* %nonassoc prec_below_IMPL *)
 (* %right    IMPL *)
 (* %nonassoc IFF *)
@@ -315,12 +316,14 @@
 %right OP0 DOLLAR
 %left OP1 GT LT
 %left OP2
-%right ARROW
+(* XXX: Is this right? *)
+(* %right ARROW *)
 %left OP3 STAR
 %left OP4
 (* %left OP4 DCOLON *)
 
-%nonassoc LBRACE
+(* XXX: Is this right? *)
+(* %nonassoc LBRACE *)
 
 (* %right STAR *)
 

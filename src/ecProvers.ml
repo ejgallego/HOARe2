@@ -31,6 +31,7 @@ end = struct
       Whyconf.load_plugins main;
 
       (* Fixme *)
+      (* List.iter (Printf.eprintf "LP: %s\n") (Whyconf.loadpath main); *)
       let w3_env  = Env.create_env @@ (Whyconf.loadpath main) @
                                       !Support.Options.why_path in
 
