@@ -163,7 +163,7 @@ rule main = parse
   (*   }  *)
 
   (* punctuation *)
-  | '_'  { UNDERSCORE }
+  (*  | '_'  { UNDERSCORE } *)
   | '('  { LPAREN }
   | ')'  { RPAREN }
   | '{'  { LBRACE }

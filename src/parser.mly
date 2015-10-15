@@ -275,7 +275,7 @@
 (* %token TRUE *)
 %token TRUST
 (* %token TYPE *)
-%token UNDERSCORE
+(* %token UNDERSCORE *)
 (* %token UNDO *)
 (* %token UNROLL *)
 (* %token USING *)
@@ -851,10 +851,10 @@ ty:
    }
 
 (* Dmonad *)
-| m=loc(DMONAD) UNDERSCORE d=lident a=brackets(exp) t=ty
+| m=loc(DMONAD) LBRACKET mty=lident COMMA d=exp RBRACKET t=ty
    { fun env ->
      let mty = Fdistance in
-     mk_loc m.pl_loc (TG(mty, a env, t env), None)
+     mk_loc m.pl_loc (TG(mty, d env, t env), None)
    }
 
 (* Version without delta *)
