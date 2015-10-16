@@ -275,6 +275,16 @@ module Subtyping = struct
       *)
       check_subtype st ty1 ty2
 
+    | TG(_mty1, d1, ty1), TG(_mty2, d2, ty2) ->
+
+      (* XXX: check the mty conditions *)
+      check_float_le st d1 d2;
+
+      (* We could inject a lifting here to allow refinement over
+         monadic types
+      *)
+      check_subtype st ty1 ty2
+
     | TPi(bi1, ty1_a, ty1_r), TPi(bi2, ty2_a, ty2_r) ->
 
       check_subtype st ty2_a ty1_a;
@@ -388,6 +398,13 @@ module Subtyping = struct
     | TVar {contents = TV_Link ty} -> check_c_shape ty
     | TC ty              -> ty
     | _                  -> fail (new_error ty    @@ WrongShape(ty, "CMonadic (let rec?)"))
+
+  let rec check_d_shape ty =
+    match ty_u ty with
+    | TVar {contents = TV_Link ty} -> check_d_shape ty
+    | TRef(b_ty, r_ty, _fo)        -> check_d_shape r_ty
+    | TG(mty, e_d, ty)             -> ty, mty, e_d
+    | _                            -> fail (new_error ty    @@ WrongShape(ty, "PMonadic"))
 
   (* XXX: Clean up  *)
   let rec check_ty_ind_shape st (ty : ty) =
@@ -788,11 +805,75 @@ let rec type_of e_st e : ty =
     (*******************************************************************)
     (* DUnit/DLet                                                      *)
     (*******************************************************************)
-    | EMUnit (DMonad _, e_u)                                             ->
-      typing_error e_st "dunit not implemented"
+    | EMUnit (DMonad, e_u)                                              ->
+      let e_ty  = type_of e_st e_u                                        in
 
-    | EMLet(DMonad _, b1, ty_a, e1, e2)                                  ->
-      typing_error e_st "dlet not implemented"
+      (* Remove annotation *)
+      let e_ty  = erase_ty_ann e_ty                                       in
+      let delta = EB.mk_exp_float e_st 0.0                                in
+      let mty   = Dsymbol "any"                                           in
+
+      EB.mk_ty_d e_st mty delta e_ty None
+
+    | EMLet(DMonad, b1, ty_a, e1, e2)                                  ->
+
+      Option.may (wf_type e_st) ty_a;
+
+      (* Type check e1                                                    *)
+      let e1_ty              = type_of e_st e1                            in
+      let e1_mty, mty1, e1_d = check_d_shape e1_ty                        in
+
+      (* Type check e2                                                    *)
+      let e2_st              = ES.open_binder e_st b1 e1_mty              in
+      let e2_ty              = type_of e2_st e2                           in
+      let e2_mty, mty2, e2_d = check_d_shape e2_ty                        in
+
+      (* Note that we allow the typechecking to proceed, however, x
+         must not occur free in ret_ty
+
+         For now we check that it is not the case, otherwise we bail
+         out.
+
+         We could support an annotation here or use bidirectional type
+         checking, still thinking about what is the best approach.
+      *)
+
+      (* If we have an annotation then we can check the full type *)
+      begin match ty_a with
+      | None ->
+        (* We must check that the inferred type is well formed. *)
+        let e2_mty_fv = ty_free_vars  e2_mty                                in
+        let e2_d_fv   = exp_free_vars e2_d                                  in
+        let e2_fv     = union_list_iset [e2_mty_fv; e2_d_fv]                in
+
+        if IntSet.mem 0 e2_fv then
+          typing_error e "Bound variable @[%a@] not free in dlet type: @[%a@]!" P.pp_binfo b1 P.pp_ty e2_ty;
+        (* else, we can safely eliminate the variable *)
+
+        let e2_mty    = ty_subst  0 e1 e2_mty                               in
+        let e2_d      = exp_subst 0 e1 e2_d                                 in
+
+        (* FIXME: what about the types of e2_a, should we check them? *)
+        let ret_d  = EB.mk_exp_bin e_st EC.add_float e1_d e2_d              in
+
+        (* We now build the return type *)
+        (* XXX: compare the indexes *)
+        EB.mk_ty_d e_st mty1 ret_d e2_mty None
+
+      | Some ty ->
+        (* However, now we must perform a subtyping check against the
+           annotation, shifting is in order *)
+        let e1_d   = exp_shift 0 1 e1_d                                     in
+        let ret_d  = EB.mk_exp_bin e2_st EC.add_float e1_d e2_d             in
+        let in_ty  = EB.mk_ty_d e2_st mty1 ret_d e2_mty None                 in
+
+        (* We now do the check *)
+        let ty_sh = ty_shift 0 1 ty in
+        check_subtype e2_st in_ty ty_sh;
+
+        (* Return the annotation *)
+        ty
+      end
 
     (*******************************************************************)
     (* MUnit                                                           *)

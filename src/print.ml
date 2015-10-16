@@ -213,7 +213,7 @@ let prim_special s = match s with
   | _     -> s
 
 let somty mt = match mt with
-  | Fdistance -> "f"
+  | Dsymbol s -> s
 
 let somu tm = match tm with
   | PMonad -> "munit"

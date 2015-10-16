@@ -214,6 +214,9 @@ module Builders = struct
   let mk_ty_m st bi_a bi_d ty e_ann=
     mk_loc st @@ (TM (bi_a, bi_d, ty), e_ann)
 
+  let mk_ty_d st mty bi_d ty e_ann=
+    mk_loc st @@ (TG (mty, bi_d, ty), e_ann)
+
   let mk_ty_c st ty e_ann=
     mk_loc st @@ (TC ty, e_ann)
 

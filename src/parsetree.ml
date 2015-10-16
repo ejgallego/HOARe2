@@ -102,7 +102,7 @@ and pattern = pattern_r located
 
 (* Empty for now *)
 type dmonad_type =
-| Fdistance
+| Dsymbol of string
 
 type monad_type =
 | PMonad

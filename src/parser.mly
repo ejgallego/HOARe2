@@ -853,7 +853,7 @@ ty:
 (* Dmonad *)
 | m=loc(DMONAD) LBRACKET mty=lident COMMA d=exp RBRACKET t=ty
    { fun env ->
-     let mty = Fdistance in
+     let mty = Dsymbol mty.pl_desc in
      mk_loc m.pl_loc (TG(mty, d env, t env), None)
    }
 

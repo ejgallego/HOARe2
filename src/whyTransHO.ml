@@ -246,6 +246,13 @@ let rec rtype_to_why3 (ty : ty) : Ty.ty = match ty_u ty with
     Ty.ty_app Ty.ts_func [a_ty; r_ty]
 
   | TC ty           -> rtype_to_why3 ty
+  | TG (_mty,_d, ty ) ->
+    (* Hack *)
+    let ts_distr = EC.tdistr_info          in
+    let distr_ty = why3_lookup_ty ts_distr in
+    let arg_ty   = rtype_to_why3 ty        in
+    Ty.ty_app distr_ty [arg_ty]
+
   | TM (_a,_d, ty ) ->
     (* Hack *)
     let ts_distr = EC.tdistr_info          in

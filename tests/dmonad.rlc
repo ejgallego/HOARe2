@@ -1,7 +1,8 @@
-let fp : {e : real | e = 1.0 } = 1.0 in
+let fp : {e : real | e = 3.0 } = 3.0 in
 
-let try : D[f, 0.0 +. fp] real  =
-    dlet  x = munit 0.0  in
-    dunit x
+let try (m :: D[f, 2.0] real) : D[f, fp] real =
+    dlet  x = dunit 0.0  in
+    dlet  y = m          in
+    dunit y +. x
 
 in try
