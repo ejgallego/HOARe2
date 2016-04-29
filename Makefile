@@ -2,7 +2,7 @@
 ARLC=src/arlc
 
 # Ocamlbuild
-OCBOPTS=-use-ocamlfind -pkg unix,menhirLib,why3 -use-menhir
+OCBOPTS=-use-ocamlfind
 # OCBOPTS=-use-ocamlfind -lib unix -pkgs menhirLib -use-menhir
 OCAMLBUILD=ocamlbuild $(OCBOPTS)
 
