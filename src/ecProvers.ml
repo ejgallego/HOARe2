@@ -181,7 +181,7 @@ let restartable_syscall (call : unit -> 'a) : 'a =
 let execute_task (pi : prover_infos) task =
   let module CP = Call_provers in
 
-  let pcs = Array.create pi.pr_maxprocs None in
+  let pcs = Array.make pi.pr_maxprocs None in
 
   (* Run process, ignoring prover failing to start *)
   let run i prover =
@@ -196,9 +196,13 @@ let execute_task (pi : prover_infos) task =
           | Some wrapper -> Printf.sprintf "%s %s" wrapper command
         in
 
-        let timelimit =
-          if pi.pr_timelimit <= 0 then None else Some pi.pr_timelimit in
-        Driver.prove_task ~command ?timelimit dr task ()
+        let limit = {
+          Call_provers.limit_time   =
+            if pi.pr_timelimit <= 0 then None else Some pi.pr_timelimit;
+          Call_provers.limit_mem    = None;
+          Call_provers.limit_steps  = None;
+        } in
+        Driver.prove_task ~command ~limit dr task ()
       in
         pcs.(i) <- Some (prover, pc)
     with e ->

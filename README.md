@@ -20,9 +20,9 @@ using OPAM will considerably ease the task.
 
 ### Installing Why3:
 
-The tool builds against Why3 0.86.1 from (http://why3.lri.fr/).
+The tool builds against Why3 0.87 from (http://why3.lri.fr/).
 See the why3 readme for why3 dependencies. The basic build process
-should go like:
+goes like:
 
 ```
 $ ./configure
