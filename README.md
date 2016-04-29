@@ -1,51 +1,44 @@
 # Welcome to the HOARe² compiler distribution!
 
-This compiler implements the type system described in the paper:
+We provide the type checker and examples used in papers:
 
-"Higher-Order Approximate Relational Refinement Types for Mechanism
- Design and Differential Privacy"
- (http://dl.acm.org/citation.cfm?id=2677000)
+* "Higher-Order Approximate Relational Refinement Types for Mechanism
+   Design and Differential Privacy"
+   (http://dl.acm.org/citation.cfm?id=2677000)
+   (http://arxiv.org/abs/1407.6845)
 
-as well as some extensions used in current work.
+* "Computer-aided verification in mechanism design"
+   (http://arxiv.org/abs/1502.04052)
 
 ## Build instructions:
 
-### Required tools:
-
-You will need an ocaml toolchain (>= 4.02.3) with ocamlfind,
-ocamlbuild, and standard gnu tools (gcc and make).
-
-Installation of those tools can be done through standard channels,
-using OPAM will considerably ease the task.
-
-### Installing Why3:
-
-The tool builds against Why3 0.87 from (http://why3.lri.fr/).
-See the why3 readme for why3 dependencies. The basic build process
-goes like:
+We recommend using OPAM to install the tool, you'll need a recent
+repository and standard gnu tools (gcc and make).
 
 ```
-$ ./configure
+$ opam switch 4.03.0
+$ opam install ocamlbuild why3 menhir
+$ why3 config --detect
 $ make
-$ make install
-$ make byte opt
-$ make install-lib
+$ ./arlc -L examples/popl/ examples/popl/dummysum.rlc
 ```
 
 ### Provers:
 
-Prover support is always a changuing issue, the tool has been tested with the following SMT solvers:
+You want to install some SMT solvers to run the tool.
+We recommend the following set:
 
 ```
 $ why3 config --detect
-Found prover Alt-Ergo version 1.00.prv, Ok.
-Found prover CVC4 version 1.4, Ok.
-Found prover CVC3 version 2.4.1, Ok.
-Found prover Eprover version 1.8-001, Ok.
-Found prover Coq version 8.4pl4, Ok.
+Found prover Alt-Ergo version 1.00.prv, OK.
+Found prover CVC4 version 1.4, OK.
+Found prover CVC4 version 1.4 (alternative: noBV)
+Found prover CVC3 version 2.4.1, OK.
+Found prover Eprover version 1.8-001, OK.
+Found prover Z3 version 4.3.1 (old version, please consider upgrading).
 ```
 
-You may be lucky with other versions.
+You may be lucky with other versions. Links:
 
 - Alt-Ergo: (http://alt-ergo.ocamlpro.com/)
 - CVC3 2.4.1 and CVC4 1.4:
@@ -54,11 +47,9 @@ You may be lucky with other versions.
 - Eprover 1.8:
   http://wwwlehre.dhbw-stuttgart.de/~sschulz/E/E.html
 
-### Building HOARe²:
+### Running HOARe²:
 
-A simple `make` will compile the tool.
-
-To type a program run:
+To type-check a program just run:
 
 ```
 $ ./arlc examples/ex01
