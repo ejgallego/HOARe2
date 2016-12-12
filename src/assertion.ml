@@ -200,8 +200,8 @@ let check_assertion st fo =
   (* Reset the Why3 pretty printer *)
   WP.forget_all ();
 
-  as_info  fo "************************************************************************";
-  as_info  fo "!A! Starting assertion check...";
+  as_info2  fo "************************************************************************";
+  as_info2  fo "!A! Starting assertion check...";
   let w_st = WT.new_env st                                                      in
 
   (* Create a map v_index -> (bi, type) *)
@@ -293,11 +293,11 @@ let check_assertion st fo =
   begin match res with
   | None ->
     failed_assertions := !failed_assertions @ [fo];
-    as_info fo "!A! Assertion check end with result unkwown"
+    as_info2 fo "!A! Assertion check end with result unkwown"
   | Some (res, prover) ->
-    as_info  fo "!A! Assertion check end with result: %b by %s" res prover
+    as_info2  fo "!A! Assertion check end with result: %b by %s" res prover
   end;
-  as_info  fo "************************************************************************\n";
+  as_info2  fo "************************************************************************\n";
   res
 
 let is_true st fo = check_assertion st fo

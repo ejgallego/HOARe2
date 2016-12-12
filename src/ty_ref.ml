@@ -98,7 +98,8 @@ module Subtyping = struct
     match result with
     (* Unknown *)
     | None ->
-      ty_warning fo "!!!!! Couldn't prove @[%a@]@\nin env: @[%a@]" P.pp_exp fo P.pp_env (ho_env st);
+      ty_warning fo "!!!!! Couldn't prove @[%a@]@\n" P.pp_exp fo;
+      ty_info2 fo "in env: @[%a@]" P.pp_env (ho_env st);
       if not ignore then fail as_err
     (* If the assertion is proven false, we always bail! *)
     | Some(b_res, _) ->
@@ -333,7 +334,7 @@ module Subtyping = struct
       begin match ty1_e with
       | None          -> check_assertion ref_st fo2
       | Some (el, er) ->
-        ty_info ty1 "!R! Trying refinement";
+        ty_info2 ty1 "!R! Trying refinement rule";
 
         (* Add "bi2   = e" to the context *)
         let ref_el    = exp_shift 0 1 el                        in
