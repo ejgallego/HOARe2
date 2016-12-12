@@ -103,17 +103,17 @@ theory HKM
             munit (Cons p ps)))
     end
 
-  function repeatM (n : nat) (m : (distr 'a)) : distr (list 'a)
-  = match n with
-    | Zero -> munit Nil
-    | Succ n' ->
-        mbind m (\ p : 'a .
-          mbind (repeatM n' m) (\ ps : list 'a .
-            munit (Cons p ps)))
-    end
+  (* function repeatM (n : nat) (m : (distr 'a)) : distr (list 'a) *)
+  (* = match n with *)
+  (*   | Zero -> munit Nil *)
+  (*   | Succ n' -> *)
+  (*       mbind m (\ p : 'a . *)
+  (*         mbind (repeatM n' m) (\ ps : list 'a . *)
+  (*           munit (Cons p ps))) *)
+  (*   end *)
 
-  lemma repeatMseqM : forall n : nat, m : distr 'a.
-    seqM (repeat n m) = repeatM n m
+  (* lemma repeatMseqM : forall n : nat, m : distr 'a. *)
+  (*   seqM (repeat n m) = repeatM n m *)
 
   function sampleAndApply (mu : distr 'a) : ('a -> distr 'a) -> distr 'a
     = \ f : ('a -> distr 'a) . mbind mu (\ t : 'a. f t)
@@ -121,11 +121,14 @@ theory HKM
   (* Unsure how to use the map theory... is it HO? *)
   function mapHO (f : 'a -> 'b) (l : list 'a) : list 'b
 
-  (* Corresponds to axiom in why3/obligation in EC. *)
-  predicate distPres (mu : distr 'a) (f : 'a -> distr 'a) = true
+  predicate is_shape_others (f : 'a -> distr 'a) = true
 
-    (* TODO *)
-    (* (sampleAndApply mu f = mu) *)
+  predicate distPres (mu : distr 'a) (f : 'a -> distr 'a) =
+      sampleAndApply mu f = mu
+
+  (* EC Axiom *)
+  axiom ec_proof : forall mu : distr 'a. forall f : 'a -> distr 'a .
+    is_shape_others f -> distPres mu f
 
   predicate allPres (mu : distr 'a) (l : list ('a -> distr 'a)) =
     match l with
