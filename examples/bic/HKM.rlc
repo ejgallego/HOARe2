@@ -80,11 +80,11 @@ fun (m : { m : nat | 1 <= nat_to_int m }) (* Number of replicas *)
 
     (* repeat with relational type. *)
     (* repeat in why3 has no refinements. *)
-    (repeatM : Pi (n : nat) (mu :: M { s :: ty | s<1> = s<2> }). { res ::
-               M { ss :: list ty |  ss<1> = ss<2> /\ (length ss<1> = (nat_to_int n)) }
-               |  res<1> = seqM (repeat n mu<1>)
-               /\ res<2> = seqM (repeat n mu<2>)
-               })
+    (* (repeatM : Pi (n : nat) (mu :: M { s :: ty | s<1> = s<2> }). { res :: *)
+    (*            M { ss :: list ty |  ss<1> = ss<2> /\ (length ss<1> = (nat_to_int n)) } *)
+    (*            |  res<1> = seqM (repeat n mu<1>) *)
+    (*            /\ res<2> = seqM (repeat n mu<2>) *)
+    (*            }) *)
 
     (mu     : M { n :: ty | n<1> = n<2> })
 

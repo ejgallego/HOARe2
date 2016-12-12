@@ -103,6 +103,18 @@ theory HKM
             munit (Cons p ps)))
     end
 
+  function repeatM (n : nat) (m : (distr 'a)) : distr (list 'a)
+  = match n with
+    | Zero -> munit Nil
+    | Succ n' ->
+        mbind m (\ p : 'a .
+          mbind (repeatM n' m) (\ ps : list 'a .
+            munit (Cons p ps)))
+    end
+
+  lemma repeatMseqM : forall n : nat, m : distr 'a.
+    seqM (repeat n m) = repeatM n m
+
   function sampleAndApply (mu : distr 'a) : ('a -> distr 'a) -> distr 'a
     = \ f : ('a -> distr 'a) . mbind mu (\ t : 'a. f t)
 
