@@ -460,147 +460,37 @@ Axiom mapIdxPricesLen : forall (sz:Z) (f:(nat -> R)), (0%Z <= sz)%Z ->
 Parameter castDistPres: ((distr ty) -> ((list (ty -> (distr ty))) ->
   (list (ty -> (distr ty))))).
 
-Parameter m: nat.
-
-Parameter n: nat.
-
-Parameter predm: nat.
-
-Parameter predn: nat.
-
-Parameter unif: (nat -> (distr nat)).
-
-Parameter repeatM: (nat -> ((distr ty) -> (distr (list ty)))).
-
 Parameter mu: (distr ty).
 
-Parameter alg: ((list ty) -> oc).
+Parameter l: (list (ty -> (distr ty))).
 
-Parameter value: (ty -> (oc -> R)).
+Parameter x1: (ty -> (distr ty)).
 
-Parameter expect1: ((distr ((list ty)* (list ty)* nat)%type) -> ((((list ty)*
-  (list ty)* nat)%type -> R) -> R)).
+Parameter x2: (ty -> (distr ty)).
 
-Parameter expect2: ((distr R) -> R).
+Parameter xs1: (list (ty -> (distr ty))).
 
-Parameter mapIdxMoves: (Z -> ((nat -> (ty -> (distr ty))) -> (list (ty ->
-  (distr ty))))).
-
-Parameter mapWithIdxValue: ((list ty) -> ((Z -> (ty -> ((list ty) -> R))) ->
-  (list ((list ty) -> R)))).
-
-Parameter makePrefs: ((list ty) -> ((ty -> (ty -> R)) -> (list ((list ty) ->
-  R)))).
-
-Parameter reps1: (list ty).
-
-Parameter reps2: (list ty).
-
-Parameter surs1: (list ty).
-
-Parameter surs2: (list ty).
-
-Parameter wts: (ty -> (ty -> R)).
-
-Parameter o1: ((list ty)* (list R))%type.
-
-Parameter o2: ((list ty)* (list R))%type.
+Parameter xs2: (list (ty -> (distr ty))).
 
 Parameter ref_: unit.
 
-Axiom castDistPres_rtype : forall (mu1:(distr ty)), forall (l:(list (ty ->
-  (distr ty)))), (allPres mu1 ((castDistPres mu1) l)) /\
-  ((list.Length.length ((castDistPres mu1) l)) = (list.Length.length l)).
+Parameter ret: (list (ty -> (distr ty))).
 
-Axiom m_rtype : (1%Z <= (nat_to_int m))%Z.
+Parameter ref_1: unit.
 
-Axiom n_rtype : (1%Z <= (nat_to_int n))%Z.
+Axiom castDistPres_rtype : forall (mu1:(distr ty)), forall (l1:(list (ty ->
+  (distr ty)))), (allPres mu1 ((castDistPres mu1) l1)) /\
+  ((list.Length.length ((castDistPres mu1) l1)) = (list.Length.length l1)).
 
-Axiom predm_rtype : ((Succ predm) = m).
+Axiom ref__rtype : (l = (Init.Datatypes.cons x1 xs1)) /\
+  (l = (Init.Datatypes.cons x2 xs2)).
 
-Axiom predn_rtype : ((Succ predn) = n).
-
-Axiom repeatM_rtype : forall (n1:nat), forall (mu1:(distr ty)) (mu2:(distr
-  ty)), (((repeatM n1) mu1) = (seqM (repeat n1 mu1))) /\ (((repeatM n1)
-  mu2) = (seqM (repeat n1 mu2))).
-
-Axiom expect1_rtype : forall (mu1:(distr ((list ty)* (list ty)* nat)%type))
-  (mu2:(distr ((list ty)* (list ty)* nat)%type)), forall (f1:(((list ty)*
-  (list ty)* nat)%type -> R)) (f2:(((list ty)* (list ty)* nat)%type -> R)),
-  (forall (r:((list ty)* (list ty)* nat)%type),
-  (((list.Length.length (fst3 r)) = (nat_to_int predm)) /\
-  (((list.Length.length (fst3 r)) = (nat_to_int predm)) /\
-  (((list.Length.length (snd3 r)) = (nat_to_int m)) /\
-  (((list.Length.length (snd3 r)) = (nat_to_int m)) /\
-  ((nat_to_int (thd3 r)) < (nat_to_int m))%Z)))) -> ((f2 r) <= (f1 r))%R) ->
-  (((expect1 mu2) f2) <= ((expect1 mu1) f1))%R.
-
-Axiom mapIdxMoves_rtype : forall (sz:Z), forall (f:(nat -> (ty -> (distr
-  ty)))), (forall (idx:nat), ((nat_to_int idx) < sz)%Z -> (distPres mu (f
-  idx))) -> ((0%Z <= sz)%Z -> ((list.Length.length ((mapIdxMoves sz)
-  f)) = sz)).
-
-Axiom mapWithIdxValue_rtype : forall (xs1:(list ty)) (xs2:(list ty)),
-  ((list.Length.length xs1) = (list.Length.length xs2)) -> forall (f:(Z ->
-  (ty -> ((list ty) -> R)))), ((list.Length.length ((mapWithIdxValue xs1)
-  f)) = (list.Length.length ((mapWithIdxValue xs2) f))) /\
-  (((list.Length.length ((mapWithIdxValue xs1)
-  f)) = (list.Length.length xs1)) /\ ((forall (idx:Z), ((0%Z <= idx)%Z /\
-  (idx < (list.Length.length xs1))%Z) -> ((list.NthNoOpt.nth idx
-  ((mapWithIdxValue xs1) f)) = ((f idx) (list.NthNoOpt.nth idx xs1)))) /\
-  ((forall (idx:Z), ((0%Z <= idx)%Z /\ (idx < (list.Length.length xs1))%Z) ->
-  ((list.NthNoOpt.nth idx ((mapWithIdxValue xs2) f)) = ((f idx)
-  (list.NthNoOpt.nth idx xs2)))) /\ forall (idx:Z), ((0%Z <= idx)%Z /\
-  (idx < (list.Length.length xs1))%Z) -> ((differAt (int_to_nat idx) xs1
-  xs2) -> ((allBut (int_to_nat idx) ((mapWithIdxValue xs1)
-  f)) = (allBut (int_to_nat idx) ((mapWithIdxValue xs2) f))))))).
-
-Axiom makePrefs_rtype : forall (reps11:(list ty)) (reps21:(list ty)),
-  (((list.Length.length reps11) = (list.Length.length reps21)) /\
-  ((list.Length.length reps11) = (nat_to_int m))) -> forall (wts1:(ty ->
-  (ty -> R))), ((list.Length.length ((makePrefs reps11)
-  wts1)) = (list.Length.length ((makePrefs reps21) wts1))) /\
-  (((list.Length.length ((makePrefs reps11) wts1)) = (nat_to_int m)) /\
-  ((forall (i:Z), forall (alloc:(list ty)), ((0%Z <= i)%Z /\
-  ((i <= (nat_to_int predm))%Z /\
-  ((nat_to_int m) = (list.Length.length alloc)))) -> (((list.NthNoOpt.nth i
-  ((makePrefs reps11) wts1)) alloc) = ((wts1 (list.NthNoOpt.nth i reps11))
-  (list.NthNoOpt.nth i alloc)))) /\ ((forall (i:Z), forall (alloc:(list ty)),
-  ((0%Z <= i)%Z /\ ((i <= (nat_to_int predm))%Z /\
-  ((nat_to_int m) = (list.Length.length alloc)))) -> (((list.NthNoOpt.nth i
-  ((makePrefs reps21) wts1)) alloc) = ((wts1 (list.NthNoOpt.nth i reps21))
-  (list.NthNoOpt.nth i alloc)))) /\ forall (i:Z), forall (alloc:(list ty)),
-  ((0%Z <= i)%Z /\ ((i <= (nat_to_int predm))%Z /\
-  ((nat_to_int m) = (list.Length.length alloc)))) -> ((differAt
-  (int_to_nat i) reps11 reps21) -> ((allBut (int_to_nat i) ((makePrefs
-  reps11) wts1)) = (allBut (int_to_nat i) ((makePrefs reps21) wts1))))))).
-
-Axiom reps_rtype : ((list.Length.length reps1) = (list.Length.length reps2)) /\
-  ((list.Length.length reps1) = (nat_to_int m)).
-
-Axiom surs_rtype : (surs1 = surs2) /\
-  ((list.Length.length surs1) = (nat_to_int m)).
-
-Axiom ref__rtype : (o1 = ((findMax (sumFuns1 ((makePrefs reps1) wts))
-  (enumPerms surs1)), (mapIdxPrices (nat_to_int m) (fun (i:nat) =>
-  ((sumFuns (allBut i ((makePrefs reps1) wts)) (findMax (sumFuns1 (allBut i
-  ((makePrefs reps1) wts))) (enumPerms surs1))) - (sumFuns (allBut i
-  ((makePrefs reps1) wts)) (findMax (sumFuns1 ((makePrefs reps1) wts))
-  (enumPerms surs1))))%R)))) /\ (o2 = ((findMax (sumFuns1 ((makePrefs reps2)
-  wts)) (enumPerms surs2)), (mapIdxPrices (nat_to_int m) (fun (i:nat) =>
-  ((sumFuns (allBut i ((makePrefs reps2) wts)) (findMax (sumFuns1 (allBut i
-  ((makePrefs reps2) wts))) (enumPerms surs2))) - (sumFuns (allBut i
-  ((makePrefs reps2) wts)) (findMax (sumFuns1 ((makePrefs reps2) wts))
-  (enumPerms surs2))))%R)))).
+Axiom ref__rtype1 : (ret = (Init.Datatypes.cons x1 ((castDistPres mu)
+  xs1))) /\ (ret = (Init.Datatypes.cons x2 ((castDistPres mu) xs2))).
 
 (* Why3 goal *)
-Theorem ty_goal : (forall (i:Z), ((0%Z <= i)%Z /\
-  ((i <= (nat_to_int predm))%Z /\ (differAt (int_to_nat i) reps1 reps2))) ->
-  ((((wts (list.NthNoOpt.nth i reps1)) (list.NthNoOpt.nth i
-  (fst o2))) - (list.NthNoOpt.nth i (snd o2)))%R <= (((wts
-  (list.NthNoOpt.nth i reps1)) (list.NthNoOpt.nth i
-  (fst o1))) - (list.NthNoOpt.nth i (snd o1)))%R)%R) /\ ((list.Permut.permut
-  surs1 (fst o1)) /\ (list.Permut.permut surs2 (fst o2))).
+Theorem ty_goal : (allPres mu ret) /\
+  ((list.Length.length ret) = (list.Length.length l)).
 
 
 Qed.

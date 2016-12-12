@@ -1,0 +1,195 @@
+theory ARLC
+  use import HighOrd
+  use import rlc.Distr
+
+  use import real.RealInfix
+
+  use import int.Int
+
+  use import list.List
+
+  use import list.Length
+
+  use import list.Mem
+
+  use import list.NthNoOpt
+
+  use import list.Permut
+
+  use import proj.Projs
+
+  use import bool.Bool
+
+  use import nat.Nat
+
+  use import dp.DP
+
+  use import hkm.HKM
+
+  constant castDistPres : distr ty -> list (ty -> distr ty) -> list (ty ->
+    distr ty)
+  constant m : nat
+  constant n : nat
+  constant predm : nat
+  constant predn : nat
+  constant unif : nat -> distr nat
+  constant repeatM : nat -> distr ty -> distr (list ty)
+  constant mu : distr ty
+  constant alg : list ty -> oc
+  constant value : ty -> oc -> real
+  constant expect1 : distr (list ty, list ty, nat) -> ((list ty, list ty,
+    nat) -> real) -> real
+  constant expect2 : distr real -> real
+  constant mapIdxMoves : int -> (nat -> ty -> distr ty) -> list (ty -> distr
+    ty)
+  constant mapWithIdxValue : list ty -> (int -> ty -> list ty -> real) ->
+    list (list ty -> real)
+  constant makePrefs : list ty -> (ty -> ty -> real) -> list (list ty ->
+    real)
+  constant vcg : list ty -> list ty -> (ty -> ty -> real) -> (list ty, list
+    real)
+  constant rsmcoins : distr (list ty, list ty, nat)
+  constant rsmdet : nat -> (list ty, list ty, nat) -> ty -> ty -> (ty, real)
+  constant idx : nat
+  constant f : ty -> distr ty
+  constant ref_ : ()
+  axiom castDistPres_rtype :
+    forall mu1:distr ty.
+     forall l:list (ty -> distr ty).
+      allPres mu1 ((castDistPres @ mu1) @ l) /\
+       length ((castDistPres @ mu1) @ l) = length l
+  axiom m_rtype : 1 <= nat_to_int m
+  axiom n_rtype : 1 <= nat_to_int n
+  axiom predm_rtype : Succ predm = m
+  axiom predn_rtype : Succ predn = n
+  axiom repeatM_rtype :
+    forall n1:nat.
+     forall mu1:distr ty, mu2:distr ty.
+      ((repeatM @ n1) @ mu1) = seqM (repeat n1 mu1) /\
+       ((repeatM @ n1) @ mu2) = seqM (repeat n1 mu2)
+  axiom expect1_rtype :
+    forall mu1:distr (list ty, list ty, nat), mu2:distr (list ty, list ty,
+     nat).
+     forall f1:(list ty, list ty, nat) -> real, f2:(list ty, list ty, nat) ->
+      real.
+      (forall r:(list ty, list ty, nat).
+        r = r /\
+         length (fst3 r) = nat_to_int predm /\
+          length (fst3 r) = nat_to_int predm /\
+           length (snd3 r) = nat_to_int m /\
+            length (snd3 r) = nat_to_int m /\
+             nat_to_int (thd3 r) < nat_to_int m /\
+              nat_to_int (thd3 r) < nat_to_int m -> (f1 @ r) >=. (f2 @ r)) ->
+       ((expect1 @ mu1) @ f1) >=. ((expect1 @ mu2) @ f2)
+  axiom mapIdxMoves_rtype :
+    forall sz:int.
+     forall f1:nat -> ty -> distr ty.
+      (forall idx1:nat. nat_to_int idx1 < sz -> distPres mu (f1 @ idx1)) ->
+       sz >= 0 -> length ((mapIdxMoves @ sz) @ f1) = sz
+  axiom mapWithIdxValue_rtype :
+    forall xs1:list ty, xs2:list ty.
+     length xs1 = length xs2 ->
+      (forall f1:int -> ty -> list ty -> real.
+        length ((mapWithIdxValue @ xs1) @ f1) =
+         length ((mapWithIdxValue @ xs2) @ f1) /\
+         length ((mapWithIdxValue @ xs1) @ f1) = length xs1 /\
+          (forall idx1:int.
+            0 <= idx1 /\ idx1 < length xs1 ->
+             nth idx1 ((mapWithIdxValue @ xs1) @ f1) =
+              ((f1 @ idx1) @ nth idx1 xs1)) /\
+           (forall idx1:int.
+             0 <= idx1 /\ idx1 < length xs1 ->
+              nth idx1 ((mapWithIdxValue @ xs2) @ f1) =
+               ((f1 @ idx1) @ nth idx1 xs2)) /\
+            (forall idx1:int.
+              0 <= idx1 /\ idx1 < length xs1 ->
+               differAt (int_to_nat idx1) xs1 xs2 ->
+                allBut (int_to_nat idx1) ((mapWithIdxValue @ xs1) @ f1) =
+                 allBut (int_to_nat idx1) ((mapWithIdxValue @ xs2) @ f1)))
+  axiom makePrefs_rtype :
+    forall reps1:list ty, reps2:list ty.
+     length reps1 = length reps2 /\ length reps1 = nat_to_int m ->
+      (forall wts:ty -> ty -> real.
+        length ((makePrefs @ reps1) @ wts) =
+         length ((makePrefs @ reps2) @ wts) /\
+         length ((makePrefs @ reps1) @ wts) = nat_to_int m /\
+          (forall i:int.
+            forall alloc:list ty.
+             0 <= i /\ i <= nat_to_int predm /\ nat_to_int m = length alloc ->
+              (nth i ((makePrefs @ reps1) @ wts) @ alloc) =
+               ((wts @ nth i reps1) @ nth i alloc)) /\
+           (forall i:int.
+             forall alloc:list ty.
+              0 <= i /\ i <= nat_to_int predm /\ nat_to_int m = length alloc ->
+               (nth i ((makePrefs @ reps2) @ wts) @ alloc) =
+                ((wts @ nth i reps2) @ nth i alloc)) /\
+            (forall i:int.
+              forall alloc:list ty.
+               0 <= i /\ i <= nat_to_int predm /\ nat_to_int m = length alloc ->
+                differAt (int_to_nat i) reps1 reps2 ->
+                 allBut (int_to_nat i) ((makePrefs @ reps1) @ wts) =
+                  allBut (int_to_nat i) ((makePrefs @ reps2) @ wts)))
+  axiom vcg_rtype :
+    forall reps1:list ty, reps2:list ty.
+     length reps1 = length reps2 /\ length reps1 = nat_to_int m ->
+      (forall surs1:list ty, surs2:list ty.
+        surs1 = surs2 /\ length surs1 = nat_to_int m ->
+         (forall wts:ty -> ty -> real.
+           (forall i:int.
+             0 <= i /\
+              i <= nat_to_int predm /\ differAt (int_to_nat i) reps1 reps2 ->
+              (((wts @ nth i reps1) @
+                 nth i (fst (((vcg @ reps1) @ surs1) @ wts))) -.
+                nth i (snd (((vcg @ reps1) @ surs1) @ wts))) >=.
+               (((wts @ nth i reps1) @
+                  nth i (fst (((vcg @ reps2) @ surs2) @ wts))) -.
+                 nth i (snd (((vcg @ reps2) @ surs2) @ wts)))) /\
+            permut surs1 (fst (((vcg @ reps1) @ surs1) @ wts)) /\
+             permut surs2 (fst (((vcg @ reps2) @ surs2) @ wts))))
+  axiom rsmdet_rtype :
+    forall idx1:nat.
+     forall coins1:(list ty, list ty, nat), coins2:(list ty, list ty, nat).
+      coins1 = coins2 /\
+       length (fst3 coins1) = nat_to_int predm /\
+        length (fst3 coins2) = nat_to_int predm /\
+         length (snd3 coins1) = nat_to_int m /\
+          length (snd3 coins2) = nat_to_int m /\
+           nat_to_int (thd3 coins1) < nat_to_int m /\
+            nat_to_int (thd3 coins2) < nat_to_int m ->
+       (forall truety1:ty, truety2:ty.
+         truety1 = truety2 ->
+          (forall report1:ty, report2:ty.
+            nat_to_int idx1 <= nat_to_int predn ->
+             report1 = truety1 ->
+              ((((\ t:ty.
+                   \ s:ty.
+                    expect2 @
+                     mbind ((repeatM @ predn) @ mu)
+                      (\ others:list ty.
+                        munit ((value @ t) @ (alg @ insertAt idx1 s others)))) @
+                  truety1) @
+                 fst ((((rsmdet @ idx1) @ coins1) @ truety1) @ report1)) -.
+                snd ((((rsmdet @ idx1) @ coins1) @ truety1) @ report1)) >=.
+               ((((\ t:ty.
+                    \ s:ty.
+                     expect2 @
+                      mbind ((repeatM @ predn) @ mu)
+                       (\ others:list ty.
+                         munit ((value @ t) @ (alg @ insertAt idx1 s others)))) @
+                   truety1) @
+                  fst ((((rsmdet @ idx1) @ coins2) @ truety2) @ report2)) -.
+                 snd ((((rsmdet @ idx1) @ coins2) @ truety2) @ report2))))
+  axiom idx_rtype : nat_to_int idx <= nat_to_int predn
+  axiom ref__rtype :
+    f =
+     (\ ot:ty.
+       mbind rsmcoins
+        (\ coins:(list ty, list ty, nat).
+          munit (fst ((((rsmdet @ idx) @ coins) @ ot) @ ot)))) /\
+     f =
+      (\ ot:ty.
+        mbind rsmcoins
+         (\ coins:(list ty, list ty, nat).
+           munit (fst ((((rsmdet @ idx) @ coins) @ ot) @ ot))))
+  goal ty_goal : distPres mu f
+end
