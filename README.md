@@ -25,7 +25,12 @@ $ ./arlc -L examples/popl/ examples/popl/dummysum.rlc
 
 ### Provers:
 
-You want to install some SMT solvers to run the tool.
+You want to install some SMT solvers to run the tool. The following
+opam command will give you a basic working set:
+```
+opam install coq alt-ergo
+```
+
 We recommend the following set:
 
 ```
