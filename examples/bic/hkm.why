@@ -121,14 +121,8 @@ theory HKM
   (* Unsure how to use the map theory... is it HO? *)
   function mapHO (f : 'a -> 'b) (l : list 'a) : list 'b
 
-  predicate is_shape_others (f : 'a -> distr 'a) = true
-
   predicate distPres (mu : distr 'a) (f : 'a -> distr 'a) =
       sampleAndApply mu f = mu
-
-  (* EC Axiom *)
-  axiom ec_proof : forall mu : distr 'a. forall f : 'a -> distr 'a .
-    is_shape_others f -> distPres mu f
 
   predicate allPres (mu : distr 'a) (l : list ('a -> distr 'a)) =
     match l with
@@ -137,8 +131,8 @@ theory HKM
     end
 
   lemma allPresUnpack : forall n : nat, mu : distr ty, l : list (ty -> distr ty).
-  length l = (nat_to_int n) ->
-  allPres mu l ->
+    length l = (nat_to_int n) ->
+    allPres mu l ->
     repeat n mu = mapHO (sampleAndApply mu) l
 
   function enumPerms (ground : list ty) : list (list ty)

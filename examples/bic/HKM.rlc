@@ -324,13 +324,16 @@ in
 let others (idx : { i : nat | (nat_to_int i) <= (nat_to_int predn) })
            : { f : Pi (ot :: { ot :: ty | ot<1> = ot<2> }).
                    M ty
-             | is_shape_others f } =
-  fun (ot :: { ot :: ty | ot<1> = ot<2> }) ->
-    mlet coins = rsmcoins in
-    let trans :: (ty * real) = rsmdet idx coins ot ot in
-    munit (fst trans)
+             | distPres f } =
+  (* This is proved in EC *)
+  trust (ass_others) res : { f : Pi (ot :: { ot :: ty | ot<1> = ot<2> }). M ty
+                             | distPres f } =
+    (fun (ot :: { ot :: ty | ot<1> = ot<2> }) ->
+      mlet coins = rsmcoins in
+      let trans :: (ty * real) = rsmdet idx coins ot ot in
+      munit (fst trans))
+  in res
 in
-
 let bic (othermoves : { ms : list (Pi (t :: ty). M ty)
                       | allPres mu ms /\ length ms = (nat_to_int predn) })
         (truety :: { t :: ty | t<1> = t<2> })
