@@ -324,10 +324,10 @@ in
 let others (idx : { i : nat | (nat_to_int i) <= (nat_to_int predn) })
            : { f : Pi (ot :: { ot :: ty | ot<1> = ot<2> }).
                    M ty
-             | distPres f } =
+             | distPres mu f } =
   (* This is proved in EC *)
   trust (ass_others) res : { f : Pi (ot :: { ot :: ty | ot<1> = ot<2> }). M ty
-                             | distPres f } =
+                             | distPres mu f } =
     (fun (ot :: { ot :: ty | ot<1> = ot<2> }) ->
       mlet coins = rsmcoins in
       let trans :: (ty * real) = rsmdet idx coins ot ot in
