@@ -16,8 +16,11 @@ We recommend using OPAM to install the tool, you'll need a recent
 repository and standard gnu tools (gcc and make).
 
 ```
+$ opam update
 $ opam switch 4.03.0
-$ opam install ocamlbuild why3 menhir
+$ opam upgrade
+$ `eval `opam config env`
+$ opam install ocamlbuild why3 menhir alt-ergo coq
 $ why3 config --detect
 $ make
 $ ./arlc -L examples/popl/ examples/popl/dummysum.rlc
@@ -25,12 +28,7 @@ $ ./arlc -L examples/popl/ examples/popl/dummysum.rlc
 
 ### Provers:
 
-You want to install some SMT solvers to run the tool. The following
-opam command will give you a basic working set:
-```
-opam install coq alt-ergo
-```
-
+You want to install some SMT solvers to run the tool.
 We recommend the following set:
 
 ```
