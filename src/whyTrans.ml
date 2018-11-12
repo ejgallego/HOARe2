@@ -28,7 +28,7 @@ module P  = Print
 open Support.Error
 module Opts = Support.Options
 
-open WhyHacks
+(* open WhyHacks *)
 
 (* Printing routines *)
 open Format
@@ -37,16 +37,16 @@ let dummy_e = L.mk_loc L._dummy @@ EC.exp_unit
 
 let why_error   fi   = error_msg Opts.SMT fi
 let why_warning fi   = message 1 Opts.SMT fi
-let why_info    fi   = message 2 Opts.SMT fi
-let why_info2   fi   = message 3 Opts.SMT fi
-let why_debug   fi   = message 4 Opts.SMT fi
-let why_debug2  fi   = message 5 Opts.SMT fi
-let why_debug3  fi   = message 6 Opts.SMT fi
+(* let why_info    fi   = message 2 Opts.SMT fi *)
+(* let why_info2   fi   = message 3 Opts.SMT fi *)
+(* let why_debug   fi   = message 4 Opts.SMT fi *)
+(* let why_debug2  fi   = message 5 Opts.SMT fi *)
+(* let why_debug3  fi   = message 6 Opts.SMT fi *)
 
 (* Non-translatable things can be recovered *)
 exception BailTranslation
 
-let reloc e_l e = L.mk_loc e_l.L.pl_loc e
+(* let reloc e_l e = L.mk_loc e_l.L.pl_loc e *)
 
 (************************************************************************ *)
 (* Translation environment                                                *)
@@ -67,7 +67,7 @@ let pp_mapT ppf mt = match mt with
   | LS ls -> WP.print_ls ppf ls
   | VS vs -> WP.print_vs ppf vs
 
-let ty_mapT mt = match mt with
+let _ty_mapT mt = match mt with
   | LS ls -> (ls.T.ls_args, Ty.oty_type ls.T.ls_value)
   | VS vs -> ([], vs.T.vs_ty)
 
@@ -135,11 +135,11 @@ let add_fs_binding w_st v_idx b =
   }
 
 (* We can flatten types to Why3 format if needed *)
-let rec flatten_wtype (ty : Ty.ty) : (Ty.ty list * Ty.ty) =
+let rec _flatten_wtype (ty : Ty.ty) : (Ty.ty list * Ty.ty) =
   let open Ty in
   match ty.ty_node with
   | Tyapp (ts, [t1;t2]) when ts_equal ts ts_func ->
-    let (t_rest, t_ret) = flatten_wtype t2 in
+    let (t_rest, t_ret) = _flatten_wtype t2 in
     (t1 :: t_rest, t_ret)
   | _ -> ([], ty)
 
@@ -247,12 +247,14 @@ let rec rtype_to_why3 ty = match ty_u ty with
 (* Term translation                                                       *)
 
 let const_to_why3 c = match c with
-  | ECInt   i -> T.t_const (Why3.Number.ConstInt (Why3.Number.int_const_dec (string_of_int i)))
+  | ECInt   i ->
+  T.t_const (Why3.Number.ConstInt (Why3.Number.int_const_dec (string_of_int i)))
   (* No words for this choice *)
-  | ECReal f -> let (f,i) = modf f                                   in
-		 let is    = Printf.sprintf "%.0f" i                  in
-		 let fs    = String.sub (Printf.sprintf "%.3f" f) 2 3 in
-		 T.t_const (Why3.Number.ConstReal (Why3.Number.real_const_dec is fs None))
+  | ECReal f ->
+    let (f,i) = modf f                                   in
+    let is    = Printf.sprintf "%.0f" i                  in
+    let fs    = String.sub (Printf.sprintf "%.3f" f) 2 3 in
+    T.t_const (Why3.Number.ConstReal (Why3.Number.real_const_dec is fs None))
 
 (* Special primitives *)
 let why3_lprim = [
@@ -284,7 +286,7 @@ let is_why3_special e_f = match L.unloc e_f with
   | _                                      -> None
 
 (* See if the first part of an application resolves to a logical primitive *)
-let resolve_to_ls wst e = match L.unloc e with
+let resolve_to_ls _wst e = match L.unloc e with
   | ECs    c -> Some (locate_prim c)
   | EPrim  p -> Some (locate_prim p)
   (* A var can resolve to a primitive *)
@@ -296,7 +298,7 @@ let resolve_to_ls wst e = match L.unloc e with
 *)  | _        -> None
 
 (* For the quantifiers *)
-let expect_lamba wst e = match L.unloc e with
+let expect_lamba _wst e = match L.unloc e with
   | ELam (bi, ty, e_l) -> (bi, ty, e_l)
   | _                  -> why_error e "Quantifier not followed by a lambda but by @[%a@] " P.pp_exp e
 
@@ -361,15 +363,15 @@ let rec exp_to_why3 wst e = try match L.unloc e with
     let app_e      = L.mk_loc e.L.pl_loc @@ EApp (munit_prim, [e_m])          in
     exp_to_why3 wst app_e
 
-  | EMLet(PMonad, _bi, _ty, e1, e2) ->
+  | EMLet(PMonad, _bi, _ty, _e1, _e2) ->
     why_warning e "Why3-STUB: MLet @[%a@] " P.pp_exp e;
     raise BailTranslation
 
-  | ELet(_bi, _t, _ty, e1, e2) ->
+  | ELet(_bi, _t, _ty, _e1, _e2) ->
     why_warning e "Why3-STUB: Let @[%a@] " P.pp_exp e;
     raise BailTranslation
 
-  | ELam(_bi, _ty, e_l) ->
+  | ELam(_bi, _ty, _e_l) ->
 (*
     let e_l = 
     let id = id_user "fc" in

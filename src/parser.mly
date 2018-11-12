@@ -508,7 +508,7 @@ exp:
 	 (ELam (ba, aty, ie a_env))
    }
 *)
-| l=loc(FUN) ab=nonempty_list(paren(ann_binder)) ARROW ie=exp
+| _l=loc(FUN) ab=nonempty_list(paren(ann_binder)) ARROW ie=exp
    { fun env ->
      (* We must fold the environment first *)
      let (arg_list, b_env) = process_binder_list ab env in
@@ -523,7 +523,7 @@ term_ann :
 |                                       (*  *)
   { fun _ _ -> None }
 
-| b=loc(LBRACE) STRUCT l=oident RBRACE
+| loc(LBRACE) STRUCT l=oident RBRACE
   { fun n_args env ->
 
     match Env.lookup l.pl_desc env with
@@ -605,7 +605,7 @@ constructor:
 
 (* Binary operators *)
 op_exp:
-| f=op_exp op=loc(DOLLAR) e=op_exp
+| f=op_exp DOLLAR e=op_exp
    { fun env ->
      let e' = e env in
      mk_loc e'.pl_loc (EApp (f env, [e']))
@@ -866,7 +866,7 @@ ty:
 (*    } *)
 
 (* Support a list of binders *)
-| b=PI ab=nonempty_list(paren(ann_binder)) DOT rty=ty
+| PI ab=nonempty_list(paren(ann_binder)) DOT rty=ty
    { fun env ->
      (* We must fold the environment first *)
      let (arg_list, b_env) = process_binder_list ab env in

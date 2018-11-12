@@ -143,7 +143,7 @@ module Builders = struct
     mk_loc loc @@
 
       match Env.lookup id env with
-      | Some (idx, bi, ty) ->
+      | Some (idx, bi, _ty) ->
         begin match side with
         | None      -> make_var  idx bi      env
         | Some side -> make_rvar idx bi side env
@@ -233,7 +233,7 @@ module Builders = struct
 
 end
 
-open Builders
+(* open Builders *)
 
 (* Normalize nested refinement types, even if we avoid the most
    common cases in the typer *)

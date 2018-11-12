@@ -18,7 +18,7 @@ versions needed, in particular you need why3 0.87.3:
 
 ```
 $ opam update
-$ opam switch create 4.03.0
+$ opam switch create 4.05.0
 $ eval $(opam env)
 $ opam install ocamlbuild why3.0.87.3 menhir alt-ergo coq
 $ why3 config --detect

@@ -19,6 +19,7 @@ module T   = Why3.Term
 module Ty  = Why3.Ty
 
 module DT = Why3.Dterm
+(* module WC = Why3.Coercion *)
 
 module E  = Exp
 module EB = E.Builders
@@ -36,17 +37,17 @@ let err_domain = Support.Options.SMT
 
 let why_error   fi   = error_msg err_domain fi
 let why_warning fi   = message 1 err_domain fi
-let why_info    fi   = message 2 err_domain fi
-let why_info2   fi   = message 3 err_domain fi
-let why_debug   fi   = message 4 err_domain fi
-let why_debug2  fi   = message 5 err_domain fi
-let why_debug3  fi   = message 6 err_domain fi
+(* let why_info    fi   = message 2 err_domain fi *)
+(* let why_info2   fi   = message 3 err_domain fi *)
+(* let why_debug   fi   = message 4 err_domain fi *)
+(* let why_debug2  fi   = message 5 err_domain fi *)
+(* let why_debug3  fi   = message 6 err_domain fi *)
 
 (* Non-translatable things can be recovered *)
 exception BailTranslation
 
 let dummy_e     = L.mk_loc L._dummy @@ EC.exp_unit
-let reloc e_l e = L.mk_loc e_l.L.pl_loc e
+(* let reloc e_l e = L.mk_loc e_l.L.pl_loc e *)
 
 (************************************************************************ *)
 (* Translation environment                                                *)
@@ -65,7 +66,7 @@ let vsW (s, t, _) =
   | Some s -> (s.I.pre_name, t)
   | None   -> why_error dummy_e "Fix 0.86b"
 
-let vsV (s, t) = DT.DTvar(s.I.pre_name, t)
+let _vsV (s, t) = DT.DTvar(s.I.pre_name, t)
 
 let ls_mapT mt = match mt with
   | LS ls -> Some ls
@@ -143,11 +144,11 @@ let add_fs_binding w_st (v_idx : int * var_side) (b : mapT) =
   }
 
 (* We can flatten types to Why3 format if needed *)
-let rec flatten_wtype (ty : Ty.ty) : (Ty.ty list * Ty.ty) =
+let rec _flatten_wtype (ty : Ty.ty) : (Ty.ty list * Ty.ty) =
   let open Ty in
   match ty.ty_node with
   | Tyapp (ts, [t1;t2]) when ts_equal ts ts_func ->
-    let (t_rest, t_ret) = flatten_wtype t2 in
+    let (t_rest, t_ret) = _flatten_wtype t2 in
     (t1 :: t_rest, t_ret)
   | _ -> ([], ty)
 
@@ -259,10 +260,11 @@ let rec rtype_to_why3 (ty : ty) : Ty.ty = match ty_u ty with
 let const_to_number c = match c with
   | ECInt  i -> Why3.Number.ConstInt (Why3.Number.int_const_dec (string_of_int i))
   (* We use floats, Why is more accurate... *)
-  | ECReal f -> let (f,i) = modf f                                   in
-                let is    = Printf.sprintf "%.0f" i                  in
-                let fs    = String.sub (Printf.sprintf "%.3f" f) 2 3 in
-		Why3.Number.ConstReal (Why3.Number.real_const_dec is fs None)
+  | ECReal f ->
+    let (f,i) = modf f                                   in
+    let is    = Printf.sprintf "%.0f" i                  in
+    let fs    = String.sub (Printf.sprintf "%.3f" f) 2 3 in
+    Why3.Number.ConstReal (Why3.Number.real_const_dec is fs None)
 
 (* Special primitives *)
 let why3_lprim = [
@@ -294,7 +296,7 @@ let is_why3_special e_f = match L.unloc e_f with
   | _                                      -> None
 
 (* See if the first part of an application resolves to a logical primitive *)
-let resolve_to_ls wst (e : exp) : T.lsymbol option =
+let resolve_to_ls _wst (e : exp) : T.lsymbol option =
   match L.unloc e with
   | ECs    c -> Some (locate_prim c)
   | EPrim  p -> Some (locate_prim p)
@@ -307,7 +309,7 @@ let resolve_to_ls wst (e : exp) : T.lsymbol option =
 *)  | _        -> None
 
 (* For the quantifiers *)
-let expect_lamba wst (e : exp) : (binder_info * ty * exp) =
+let expect_lamba _wst (e : exp) : (binder_info * ty * exp) =
   match L.unloc e with
   | ELam (bi, ty, e_l) -> (bi, ty, e_l)
   | _                       -> why_error e "Quantifier not followed by a lambda but by @[%a@] " P.pp_exp e
@@ -359,7 +361,7 @@ let rec exp_to_dterm wst (e : exp) =
     let app_e      = L.mk_loc e.L.pl_loc @@ EApp (munit_prim, [e_m])          in
     exp_to_dterm wst app_e
 
-  | EMLet(PMonad, bi, ty, e1, e2) ->
+  | EMLet(PMonad, bi, _ty, e1, e2) ->
     (* mlet x = e in e' -> mbind e (\x -> e') *)
     let ls_mbind = locate_prim (("rlc", "Distr"), "mbind") in
     let w_e1     = exp_to_dterm wst e1                     in
@@ -386,9 +388,9 @@ let rec exp_to_dterm wst (e : exp) =
           let w_l          = exp_to_dterm w_st e2                           in
           let lam_app      = DTapp (T.fs_func_app,
                                     [dt @@ DTvar (lam_name, dty); dt @@ DTvar(v_n.I.pre_name, v_ty)]) in
-          let f = DTapp (T.ps_equ, [dterm lam_app; w_l]) in
-          let f = DTquant (DT.DTforall, [(Some v_n, v_ty, None)], [], dterm f) in
-          dt @@ DTeps (lam_id, dty, dterm f)
+          let f = DTapp (T.ps_equ, [dt lam_app; w_l]) in
+          let f = DTquant (DT.DTforall, [(Some v_n, v_ty, None)], [], dt f) in
+          dt @@ DTeps (lam_id, dty, dt f)
 
         | _ ->
           why_warning e "Why3-STUB: Lambda with a relational binder @[%a@] " P.pp_exp e;
@@ -423,9 +425,9 @@ let rec exp_to_dterm wst (e : exp) =
       let w_l          = exp_to_dterm w_st e_l                          in
       let lam_app      = DTapp (T.fs_func_app,
                                 [dt @@ DTvar (lam_name, dty); dt @@ DTvar(v_n.I.pre_name, v_ty)]) in
-      let f = DTapp (T.ps_equ, [dterm lam_app; w_l]) in
-      let f = DTquant (DT.DTforall, [(Some v_n, v_ty, None)], [], dterm f) in
-      dt @@ DTeps (lam_id, dty, dterm f)
+      let f = DTapp (T.ps_equ, [dt lam_app; w_l]) in
+      let f = DTquant (DT.DTforall, [(Some v_n, v_ty, None)], [], dt f) in
+      dt @@ DTeps (lam_id, dty, dt f)
 
     | _ ->
       why_warning e "Why3-STUB: Lambda with a relational binder @[%a@] " P.pp_exp e;

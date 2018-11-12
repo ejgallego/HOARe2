@@ -205,7 +205,7 @@ let check_assertion st fo =
   let w_st = WT.new_env st                                                      in
 
   (* Create a map v_index -> (bi, type) *)
-  let (ho_len, ho_env) = List.fold_left (fun (n, map) bi ->
+  let (_ho_len, ho_env) = List.fold_left (fun (n, map) bi ->
     (n+1, RIntMap.add n bi map)) (0, RIntMap.empty)
     (Env.get_bindings @@ ES.getenv st)                                          in
 

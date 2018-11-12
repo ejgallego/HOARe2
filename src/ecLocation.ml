@@ -85,15 +85,12 @@ let unlocs x = List.map unloc x
 let lmap f x =
   { x with pl_desc = f x.pl_desc }
 
-let locmap f x =
-  { x with pl_loc = f x.pl_loc }
-
 let uloc x l =
   { x with pl_loc = l }
 
 let mk_loc loc x = { pl_loc = loc; pl_desc = x; }
 
-(* -------------------------------------------------------------------- *)      
+(* -------------------------------------------------------------------- *)
 exception LocError of t * exn 
 
 let locate_error loc exn = 

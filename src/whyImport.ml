@@ -40,16 +40,14 @@ let _dl l = L.mk_loc L._dummy @@ l
 open Support.Error
 
 let why_error   fi = error_msg Opts.SMT fi
-let why_warning fi = message 1 Opts.SMT fi
-let why_info    fi = message 2 Opts.SMT fi
-let why_info2   fi = message 3 Opts.SMT fi
+(* let why_warning fi = message 1 Opts.SMT fi *)
+(* let why_info    fi = message 2 Opts.SMT fi *)
+(* let why_info2   fi = message 3 Opts.SMT fi *)
 let why_debug   fi = message 4 Opts.SMT fi
-let why_debug2  fi = message 5 Opts.SMT fi
+(* let why_debug2  fi = message 5 Opts.SMT fi *)
 let why_debug3  fi = message 6 Opts.SMT fi
 
-let why_info' = message 2 Opts.SMT _d
-
-let tv_n tv = tv.Ty.tv_name.WI.id_string
+(* let tv_n tv = tv.Ty.tv_name.WI.id_string *)
 let ts_n ts = ts.Ty.ts_name.WI.id_string
 let ls_n ls = ls.T.ls_name.WI.id_string
 
@@ -105,15 +103,15 @@ let build_tv_map tv_set = fst @@
     let n_iv = Parsetree.TQVar n_v                                                     in
     (Ty.Mtv.add tv n_iv tv_map, n + 1)) tv_set (Ty.Mtv.empty, 0)
 
-let import_w3_ty env ty =
-  let ty_fv  = Ty.ty_freevars Ty.Stv.empty ty                                          in
-  let tv_map = build_tv_map ty_fv                                                      in
-  import_w3_ty_core env tv_map ty
+(* let import_w3_ty env ty =
+ *   let ty_fv  = Ty.ty_freevars Ty.Stv.empty ty                                          in
+ *   let tv_map = build_tv_map ty_fv                                                      in
+ *   import_w3_ty_core env tv_map ty *)
 
-let import_w3_ty_l env ty_l =
-  let ty_fv  = ty_freevars_list ty_l                                                   in
-  let tv_map = build_tv_map ty_fv                                                      in
-  List.map (import_w3_ty_core env tv_map) ty_l
+(* let import_w3_ty_l env ty_l =
+ *   let ty_fv  = ty_freevars_list ty_l                                                   in
+ *   let tv_map = build_tv_map ty_fv                                                      in
+ *   List.map (import_w3_ty_core env tv_map) ty_l *)
 
 let import_lsymbol th add ls env =
   (* Get all type variables from arguments and possibly result *)

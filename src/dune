@@ -1,0 +1,13 @@
+(library
+ (name hoare2)
+ (wrapped false)
+ (modules :standard \ arlc)
+ (libraries unix menhirLib why3))
+
+(executable
+ (public_name arlc)
+ (modules arlc)
+ (libraries hoare2))
+
+(ocamllex lexer)
+(menhir (modules parser))

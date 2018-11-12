@@ -37,4 +37,3 @@ let get_terminal_size () =
      builtin wrapper for tput, however it does allow us to don't
      require tput or stty *)
   (* try int_of_string (Sys.getenv "COLUMNS") *)
-

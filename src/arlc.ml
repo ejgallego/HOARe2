@@ -7,9 +7,6 @@
    See the LICENSE file for details on licensing.
 *)
 
-open Unix
-
-open Env
 open EcIo
 
 (* open Eval *)

@@ -218,11 +218,6 @@ module List = struct
   let min b xs = List.fold_left min b xs
   let max b xs = List.fold_left max b xs
 
-  let rec last = function
-    | []      -> failwith "List.last"
-    | [x]     -> x
-    | _ :: xs -> last xs
-
   let create n x =
     let rec aux n xs =
       if n <= 0 then xs else aux (n-1) (x::xs)
@@ -434,7 +429,7 @@ module Parray = struct
   let fold_left2 f a t1 t2 =
     if Array.length t1 <> Array.length t2 then 
       raise (Invalid_argument "Parray.fold_left2");
-    let rec aux i a t1 t2 = 
+    let aux i a t1 t2 = 
       if i < Array.length t1 then f a t1.(i) t2.(i) 
       else a in
     aux 0 a t1 t2
@@ -460,13 +455,6 @@ end
 (* -------------------------------------------------------------------- *)
 module String = struct
   include String
-
-  let map f s =
-    let r = String.create (String.length s) in
-      for i = 0 to (String.length s) - 1 do
-        r.[i] <- f s.[i]
-      done;
-      r
 
   let startswith ptn subject =
     let rec doit i =
