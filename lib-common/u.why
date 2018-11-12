@@ -1,6 +1,6 @@
 theory U
 
-  use import real.RealInfix
+  use real.RealInfix
 
   (* Unit interval *)
   type u

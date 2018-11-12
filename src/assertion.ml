@@ -283,7 +283,7 @@ let check_assertion st fo =
   if Opts.comp_enabled Opts.SMT then
       ArlcSolver.post trust theories w_decl w_axiom w_fo fo.L.pl_loc
     else
-      Some (true, "admitted")
+      Some (true, ["admitted"])
   end with
   | WT.BailTranslation ->
     as_warning fo "Backend couldn't translate the VC, (likely cause: unsupported HO terms)";
@@ -294,8 +294,8 @@ let check_assertion st fo =
   | None ->
     failed_assertions := !failed_assertions @ [fo];
     as_info2 fo "!A! Assertion check end with result unkwown"
-  | Some (res, prover) ->
-    as_info2  fo "!A! Assertion check end with result: %b by %s" res prover
+  | Some (res , provers) ->
+    as_info2  fo "!A! Assertion check end with result: %b by %a" res Format.(pp_print_list pp_print_string) provers
   end;
   as_info2  fo "************************************************************************\n";
   res

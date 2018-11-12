@@ -1,4 +1,4 @@
-dist: xenial
+dist: bionic
 sudo: required
 language: c
 
@@ -15,17 +15,15 @@ addons:
   apt:
     packages:
     - cvc3
-    - libgtksourceview2.0-dev   # To remove when we migrate to why 1.2.0
 env:
   global:
   - OPAMYES="true"
   - OPAMJOBS="2"
   matrix:
-  - OCAML=4.05.0
-  # - OCAML=4.07.1
+  - OCAML=4.07.1
 
 before_install:
-- sudo curl -sL https://github.com/ocaml/opam/releases/download/2.0.2/opam-2.0.2-x86_64-linux -o /usr/bin/opam
+- sudo curl -sL https://github.com/ocaml/opam/releases/download/2.0.6/opam-2.0.6-x86_64-linux -o /usr/bin/opam
 - sudo chmod 755 /usr/bin/opam
 # CVC 1.6 doesn't work with why 0.87
 - sudo curl -sL http://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.4-x86_64-linux-opt -o /usr/bin/cvc4
@@ -36,8 +34,8 @@ before_install:
 - eval $(opam env)
 
 install:
-# - opam install --deps-only -d -t . # hoare2
-- travis_wait opam install menhir why3.0.87.3 alt-ergo.2.3.0 coq.8.6.1
+- travis_wait opam install --deps-only -d -t .
+# - travis_wait opam install menhir why3.1.2.1 alt-ergo.2.3.0 # coq.8.10.2
 - why3 config --detect
 
 script:

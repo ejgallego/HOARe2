@@ -28,8 +28,6 @@ module P  = Print
 open Support.Error
 module Opts = Support.Options
 
-(* open WhyHacks *)
-
 (* Printing routines *)
 open Format
 
@@ -143,6 +141,7 @@ let rec _flatten_wtype (ty : Ty.ty) : (Ty.ty list * Ty.ty) =
     (t1 :: t_rest, t_ret)
   | _ -> ([], ty)
 
+
 let make_w_var idx bi side w_ty =
   let vs_name   = I.id_fresh (bi.b_name ^ (string_of_side side)) in
   let vs        = T.create_vsymbol vs_name w_ty                  in
@@ -248,13 +247,13 @@ let rec rtype_to_why3 ty = match ty_u ty with
 
 let const_to_why3 c = match c with
   | ECInt   i ->
-  T.t_const (Why3.Number.ConstInt (Why3.Number.int_const_dec (string_of_int i)))
+    T.t_const (Why3.Number.ConstInt (Why3.Number.int_const_of_int i)) Ty.ty_int
   (* No words for this choice *)
   | ECReal f ->
     let (f,i) = modf f                                   in
     let is    = Printf.sprintf "%.0f" i                  in
     let fs    = String.sub (Printf.sprintf "%.3f" f) 2 3 in
-    T.t_const (Why3.Number.ConstReal (Why3.Number.real_const_dec is fs None))
+    T.t_const Why3.Number.(ConstReal { rc_negative = false; rc_abs = real_const_dec is fs None}) Ty.ty_real
 
 (* Special primitives *)
 let why3_lprim = [

@@ -8,9 +8,9 @@ end
 
 theory SmtHints
 
-  use import real.RealInfix
-  use import list.List
-  use import dp.DP
+  use real.RealInfix
+  use list.List
+  use dp.DP
 
   (* CVC3 verifies this hint *)
 

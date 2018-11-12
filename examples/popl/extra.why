@@ -3,7 +3,7 @@ theory Math
   (* Some extra maths facts and help for the SMTs *)
   (* Be wary that every axiom increases checking time *)
 
-  use import real.RealInfix
+  use real.RealInfix
 
   lemma real_dis : forall r1 r2 : real.
         0.0 <=. r1 ->
@@ -34,8 +34,8 @@ theory Math
   (* ******************************************************************** *)
   (* Extra int <-> real facts. *)
 
-  use import int.Int
-  use import real.FromInt
+  use int.Int
+  use real.FromInt
 
   lemma from_int_mon : forall x1 x2 : int.
     x1 <= x2 -> from_int x1 <=. from_int x2
@@ -46,17 +46,17 @@ theory Math
   (* ******************************************************************** *)
   (* Division/powering facts. *)
 
-  use import int.Int
-  use import int.Power
-  use import int.ComputerDivision
+  use int.Int
+  use int.Power
+  use int.ComputerDivision
 
   lemma div2_power_int : forall n m : int.
   n >= 1 /\ m = power 2 n -> div m 2 = power 2 (n - 1)
 
   (* ******************************************************************** *)
   (* From_int and lists. *)
-  use import list.List
-  use import list.Length
+  use list.List
+  use list.Length
 
   lemma length_succ_from_int : forall x1 : real, xs1 l1 : list real.
         l1 = Cons x1 xs1 ->
@@ -72,8 +72,8 @@ theory Math
   (* ******************************************************************** *)
 
   (* nth, length, and append *)
-  use import list.Append
-  use import list.NthNoOpt
+  use list.Append
+  use list.NthNoOpt
 
   lemma nth_last : forall i : int, l : list 'a, s : 'a.
         length l = i -> nth i (l ++ Cons s Nil) = s

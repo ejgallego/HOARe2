@@ -1,11 +1,11 @@
 (* Common definition for DP algorithms *)
 theory DP
 
-  use import bool.Bool
-  use import real.RealInfix
-  use import real.Abs as RAbs
+  use bool.Bool
+  use real.RealInfix
+  use real.Abs as RAbs
 
-  use import list.List
+  use list.List
 
   (************************************************************************)
   (* Distance over reals *)
