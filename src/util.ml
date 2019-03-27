@@ -20,7 +20,8 @@ let get_terminal_size () =
   try
     begin
       try
-        Scanf.fscanf in_channel "%d %d"
+        let sin = Scanf.Scanning.from_channel in_channel in
+        Scanf.bscanf sin "%d %d"
           (fun rows cols ->
              ignore (Unix.close_process_in in_channel);
              (rows, cols))

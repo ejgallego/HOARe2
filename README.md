@@ -12,15 +12,15 @@ We provide the type checker and examples used in papers:
 
 ## Build instructions:
 
-We recommend using OPAM to install the tool, you'll need a recent
-repository and standard gnu tools (gcc and make).
+We recommend using OPAM 2.0 to install the tool, you'll need a recent
+repository and standard gnu tools (gcc and make). Note the concrete
+versions needed, in particular you need why3 0.87.3:
 
 ```
 $ opam update
-$ opam switch 4.03.0
-$ opam upgrade
-$ `eval `opam config env`
-$ opam install ocamlbuild why3 menhir alt-ergo coq
+$ opam switch create 4.03.0
+$ eval $(opam env)
+$ opam install ocamlbuild why3.0.87.3 menhir alt-ergo coq
 $ why3 config --detect
 $ make
 $ ./arlc -L examples/popl/ examples/popl/dummysum.rlc
