@@ -51,13 +51,13 @@ theory Nat
      use import real.RealInfix
 
      (* Axioms about nat *)
-     axiom nat_int_pos  : forall n : nat. 0 <= nat_to_int n
+     lemma nat_int_pos  : forall n : nat. 0 <= nat_to_int n
 
-     axiom nat_int_plus : forall n1 n2 : nat. nat_to_int n1 + nat_to_int n2 = nat_to_int (nat_plus n1 n2)
+     lemma nat_int_plus : forall n1 n2 : nat. nat_to_int n1 + nat_to_int n2 = nat_to_int (nat_plus n1 n2)
 
-     axiom nat_real_pos : forall n : nat. 0.0 <=. nat_to_real n
+     lemma nat_real_pos : forall n : nat. 0.0 <=. nat_to_real n
 
-     axiom nat_real_plus : forall n1 n2 : nat. nat_to_real n1 +. nat_to_real n2 = nat_to_real (nat_plus n1 n2)
+     lemma nat_real_plus : forall n1 n2 : nat. nat_to_real n1 +. nat_to_real n2 = nat_to_real (nat_plus n1 n2)
 
 (*
      lemma conv_int_nat_real : forall x : int.
