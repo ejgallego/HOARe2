@@ -37,7 +37,7 @@ before_install:
 install:
 # - opam install --deps-only -d -t . # hoare2
 - travis_wait opam install menhir why3.0.87.3 alt-ergo coq
-- why3 config
+- why3 config --detect
 
 script:
 - set -e
