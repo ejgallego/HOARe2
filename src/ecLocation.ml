@@ -58,9 +58,9 @@ let tostring (p : t) =
 
 let pp_loc ppf (p : t) =
   if (fst p.loc_start = -1) then
-    Format.fprintf ppf "*******************"
+    Format.fprintf ppf "***************"
   else
-    Format.fprintf ppf "pos %02d-%02d (%03d-%03d)" (fst p.loc_start) (fst p.loc_end) (snd p.loc_start) (snd p.loc_end)
+    Format.fprintf ppf "l:%02d-%02d|c:%02d-%02d" (fst p.loc_start) (fst p.loc_end) (snd p.loc_start) (snd p.loc_end)
 
 let merge (p1 : t) (p2 : t) =
   { loc_fname = p1.loc_fname;

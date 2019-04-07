@@ -35,12 +35,6 @@ val lmap   : ('a -> 'b) -> 'a located -> 'b located
 val uloc   : 'a located -> t -> 'a located
 
 (* -------------------------------------------------------------------- *)
-exception LocError of t * exn 
+exception LocError of t * exn
 
 val locate_error : t -> exn -> 'a
-
-(*
-*** Local Variables: ***
-*** compile-directory: "../" ***
-*** End: ***
-*)

@@ -76,7 +76,7 @@ let parse file =
 
 let type_check file program =
   let ty = Ty_ref.get_type file program  in
-  main_warning dp "Type of the program: @[%a@]" P.pp_ty ty;
+  main_warning dp "Type of the program:@\n@[%a@]" P.pp_ty ty;
   (* main_warning dp "NF Type            : @[%a@]" Print.pp_ty (Assertion.ty_norm Exp.ExpState.empty ty); *)
   main_debug   dp "Trivial VCs  : %d"               !Assertion.trivial_assertions;
   main_warning dp "Number of VCs: %d"               !Assertion.total_assertions;
