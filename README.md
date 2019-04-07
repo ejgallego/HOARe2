@@ -14,16 +14,18 @@ We provide the type checker and examples used in papers:
 
 We recommend using OPAM 2.0 to install the tool, you'll need a recent
 repository and standard gnu tools (gcc and make). Note the concrete
-versions needed, in particular you need why3 0.87.3:
+versions needed, in particular you need why3 0.87.3. In case of doubt,
+the `.travis.yml` file should contain reproducible build
+instructions. A typical workflow is:
 
 ```
 $ opam update
 $ opam switch create 4.05.0
 $ eval $(opam env)
-$ opam install ocamlbuild why3.0.87.3 menhir alt-ergo coq
+$ opam install dune why3.0.87.3 menhir alt-ergo coq
 $ why3 config --detect
 $ make
-$ ./arlc -L examples/popl/ examples/popl/dummysum.rlc
+$ dune exec -- arlc -L examples/popl/ examples/popl/dummysum.rlc
 ```
 
 ### Provers:
@@ -55,7 +57,7 @@ You may be lucky with other versions. Links:
 To type-check a program just run:
 
 ```
-$ ./arlc examples/ex01
+$ dune exec -- arlc examples/ex01
 ```
 
 `arlc --help` should display help for the tool.
@@ -83,21 +85,22 @@ verified using the Why3ide.
 
 Use
 
-$ why3ide -I examples $file
-
+```
+$ why3 ide -I examples $file
+```
 to proceed.
 
 In particular:
 
-- examples/binary_vc_length_power_0.why:
+- `examples/binary_vc_length_power_0.why`:
 
   Requires the use of Eprover, it will then check.
 
-- examples/binary_vc_m_ass_0_solved.why
+- `examples/binary_vc_m_ass_0_solved.why`:
 
   This one is tricky and needs Eprover and CVC3 to check.
 
-- examples/summarization_vc_pSig_cut_0.why:
+- `examples/summarization_vc_pSig_cut_0.why`:
 
   CVC4 can solve the file as is with a large enough timeout (90s),
   using the split tactic in the IDE allows the goal to be solved
@@ -116,7 +119,7 @@ Some examples may take a long time, if they fail with a timeout,
 try increasing it:
 
 ```
-$ ./arlc --timeout 90 examples/summarization.rlc
+$ dune exec -- arlc --timeout 90 examples/summarization.rlc
 ```
 
 The tool is in alpha stage, it may be difficult to use for your own
@@ -126,7 +129,7 @@ The most common failure of the typechecking is solvers failing to
 verify an assertion. If that happens, you can use:
 
 ```
-$ why3ide arlc_current.why
+$ why3 ide arlc_current.why
 ```
 
 to play with the proof context and debug the cause of failure.
@@ -140,7 +143,7 @@ There are two important limitations of the tool, however  workarounds do exists:
   example) in the leaves to hint the type checker about the return
   type.
 
-  Also "match" require annotations.
+  Also `match` expressions do require annotations.
 
 - Assertion checking may fail with an error if the assertion cannot be
   translated to Why3. Why3 has limited support for higher-order and we
@@ -181,4 +184,3 @@ help.
 ## Language reference:
 
 TODO
-
