@@ -1,0 +1,45 @@
+dist: xenial
+sudo: required
+language: c
+
+branches:
+  only:
+  - master
+
+cache:
+  apt: true
+  directories:
+  - $HOME/.opam
+
+addons:
+  apt:
+    packages:
+    - cvc3
+    - libgtksourceview2.0-dev   # To remove when we migrate to why 1.2.0
+env:
+  global:
+  - OPAMYES="true"
+  - OPAMJOBS="2"
+  matrix:
+  - OCAML=4.05.0
+  # - OCAML=4.07.1
+
+before_install:
+- sudo curl -sL https://github.com/ocaml/opam/releases/download/2.0.2/opam-2.0.2-x86_64-linux -o /usr/bin/opam
+- sudo chmod 755 /usr/bin/opam
+- sudo curl -sL http://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/ -o /usr/bin/cvc4
+- sudo chmod 755 /usr/bin/cvc4
+# - wget http://wwwlehre.dhbw-stuttgart.de/~sschulz/WORK/E_DOWNLOAD/V_2.3/E.tgz
+- opam init --disable-sandboxing -c $OCAML
+- opam switch set $OCAML
+- eval $(opam env)
+
+install:
+# - opam install --deps-only -d -t . # hoare2
+- travis_wait opam install menhir why3.0.87.3 alt-ergo coq
+- why3 config
+
+script:
+- set -e
+- dune build
+- make examples

@@ -9,7 +9,6 @@
 
 open Parsetree
 open EcLocation
-open Print
 
 module E    = Exp
 module ES   = E.ExpState
@@ -53,8 +52,8 @@ let access_var_exp st v = let env     = ES.getenv st              in
 
 let is_var_bound   st v =
   match access_var_exp st v with
-  | None   -> false
-  | Some e -> true
+  | None    -> false
+  | Some _e -> true
 
 (* Fixme: do with the fold *)
 let rec nf e_st e =
@@ -84,19 +83,19 @@ let rec nf e_st e =
       | _                  -> reloc @@ EApp (e_f, e_l)
     end
 
-  | ELet (bi, tr, ty, e1, e2)        -> e
+  | ELet (_bi, _tr, _ty, _e1, _e2)   -> e
 
-  | EFix (bi, ty, tc, e)             -> e
+  | EFix (_bi, _ty, _tc, _e)         -> e
 
-  | EMUnit (mt, e)                   -> e
+  | EMUnit (_mt, e)                  -> e
 
   (* FIXME: This was wrong! Disabled for now! *)
-  | EMLet (mt, bi, ty_a, e1, e2)     -> e
+  | EMLet(_mt, _bi, _ty_a, _e1, _e2) -> e
 
 
-  | ECs s -> e
+  | ECs _s -> e
 
-  | EMatch (asy, e_m, pats, ty) ->     e
+  | EMatch (_asy, _e_m, _pats, _ty)  -> e
   in
 
   (* ev_debug2 e "<-- NF for    @[%a@]" P.pp_exp e; *)

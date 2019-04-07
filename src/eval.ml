@@ -9,7 +9,6 @@
 
 open Parsetree
 open EcLocation
-open Print
 
 module E    = Exp
 module ES   = E.ExpState
@@ -37,7 +36,8 @@ let cl ev = fun () -> ev
 
    If the variable has no associated expression, that means the
    variable is not bound and will be considered abstract in the VC
-                                                         *)
+*)
+
 let pick_side side (e_l, e_r) = match side with
   | SiNone  -> e_l
   | SiLeft  -> exp_project_side side e_l
@@ -56,8 +56,8 @@ let access_var_exp st v = let env     = ES.getenv st             in
 
 let is_var_bound   st v =
   match access_var_exp st v with
-  | None   -> false
-  | Some e -> true
+  | None    -> false
+  | Some _e -> true
 
 (* If e can do a step then f, else r *)
 let rec etry st e f r = match step st e with
@@ -89,7 +89,7 @@ and step e_st e =
   | EApp (e_f, e_l) ->
     begin
       match unloc e_f with
-      | ELam (b, _t, e)   -> Some (reloc @@ EApp (exp_subst 0 (List.hd e_l) e, List.tl e_l))
+      | ELam (_b, _t, e)  -> Some (reloc @@ EApp (exp_subst 0 (List.hd e_l) e, List.tl e_l))
       | _                 ->
          etry      e_st e_f (fun e -> reloc @@ EApp(e,   e_l)) @@
      cl (etry_list e_st e_l (fun e -> reloc @@ EApp(e_f, e))   @@
@@ -115,7 +115,7 @@ and step e_st e =
                 cl None
               (* cl (Some (exp_subst 0 e1 e2)) *)
 
-  | ECs s ->
+  | ECs _s ->
     None
 
   | EMatch (asy, e_m, pats, ty) ->

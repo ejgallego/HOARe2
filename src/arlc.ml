@@ -7,9 +7,7 @@
    See the LICENSE file for details on licensing.
 *)
 
-open Unix
-
-open Env
+open Hoare2
 open EcIo
 
 (* open Eval *)

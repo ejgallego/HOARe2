@@ -1,12 +1,11 @@
 (* Copyright (c) 2014, The Trustees of the University of Pennsylvania
    Copyright (c) 2014, The IMDEA Software Institute
+   Copyright (c) 2018, MINES ParisTech
    All rights reserved.
 
    LICENSE: 3-clause BSD style.
    See the LICENSE file for details on licensing.
 *)
-
-open Support.Error
 
 open Parsetree
 

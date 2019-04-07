@@ -1,6 +1,6 @@
 (* Copyright (c) 2013, The Trustees of the University of Pennsylvania
    Copyright (c) 2013, The IMDEA Software Institute
-   Copyright (c) 2015, CRI-MINES ParisTech/PSL Research University
+   Copyright (c) 2015-2018, MINES ParisTech
 
    All rights reserved.
 
@@ -222,7 +222,7 @@ let rec exp_eq e1 e2 = match unloc e1, unloc e2 with
   | ELet (_, _, _ty1, e1_x, e1_e)       , ELet (_, _, _ty2, e2_x, e2_e)       -> exp_eq e1_x e2_x && exp_eq e1_e e2_e
   | EFix (_, _, tc1, e1_e)              , EFix (_, _, tc2, e2_e)              -> tc1 = tc2        && exp_eq e1_e e2_e
   | EMUnit (mt1, e1)                    , EMUnit (mt2, e2)                    -> mt1 = mt2        && exp_eq e1   e2
-  | EMLet (mt1, _, _, e1_x, e1_e)       , EMLet (mt2, _, _, e2_x, e2_e)       -> exp_eq e1_x e2_x && exp_eq e1_e e2_e
+  | EMLet (_mt1, _, _, e1_x, e1_e)      , EMLet (_mt2, _, _, e2_x, e2_e)      -> exp_eq e1_x e2_x && exp_eq e1_e e2_e
   | _                                   , _                                   -> false
 (* We don't do any fancy stuff here... *)
 and pat_eq (p1, e1) (p2, e2) = match unloc p1, unloc p2 with
@@ -230,8 +230,8 @@ and pat_eq (p1, e1) (p2, e2) = match unloc p1, unloc p2 with
 
 and ty_eq ty1 ty2 = match ty_u ty1, ty_u ty2 with
 
-  | TVar {contents = TV_Link t1}, t2              -> ty_eq t1 ty2
-  | t1, TVar {contents = TV_Link t2}              -> ty_eq ty1 t2
+  | TVar {contents = TV_Link t1}, _t2             -> ty_eq t1 ty2
+  | _t1, TVar {contents = TV_Link t2}             -> ty_eq ty1 t2
 
   | TVar {contents = TV_Free v1},
     TVar {contents = TV_Free v2}                  -> v1 = v2
@@ -435,7 +435,7 @@ and ty_fold (ht : (ty_var ref, 't_var ref) Hashtbl.t)
     exp_fold ht ei fn_s e
 
   (* Default functions for the identity fold *)
-  let id_fn inc loc ei : ('ei, exp, pattern, ty, ty_var) fold_fn =
+  let id_fn inc loc _ei : ('ei, exp, pattern, ty, ty_var) fold_fn =
     let l_fn x = mk_loc loc x in {
       f_inc    = inc ;
       f_import = (fun (th, e)                  -> l_fn @@ EImport (th, e));
@@ -472,7 +472,7 @@ and ty_fold (ht : (ty_var ref, 't_var ref) Hashtbl.t)
   let def_fn (inc : binder_info -> ty -> 'ei_ty -> 'ei_ty)
              (d : 'r_ty)
              _lc
-             ei
+             _ei
              : ('ei_ty, 'r_ty, 'r_ty, 'r_ty, 'r_ty) fold_fn = {
     f_inc    = inc;
     f_import = (fun _i    -> d);
@@ -554,7 +554,7 @@ let fn_skel loc ei =
 
     (* Remove the refinements *)
     (* FIXME: Should we try to keep the annotation? *)
-    f_ref    = (fun (ann, bi, ty_r, e)       -> ty_r);
+    f_ref    = (fun (_ann, _bi, ty_r, _e)       -> ty_r);
   }
 
 let ty_skel ty =
@@ -588,7 +588,7 @@ let varset_fn loc ei : (int, IntSet.t, IntSet.t, IntSet.t, IntSet.t) Fold.fold_f
     f_mlet   = (fun (_mt, _bi, ty_a, e1, e2)    -> union_list_iset [oe ty_a; e1; e2]);
 
     (* Types *)
-    f_tprim  = (fun (_ann, tyc, tyargs)         -> union_list_iset tyargs);
+    f_tprim  = (fun (_ann, _tyc, tyargs)        -> union_list_iset tyargs);
     f_tc     = (fun (_ann, tyc)                 -> tyc);
     f_tm     = (fun (_ann, e_a, e_b, ty)        -> union_list_iset [e_a; e_b; ty]);
     f_pi     = (fun (_ann, _bi, ty_a, ty_r)     -> union_list_iset [ty_a; ty_r]);
@@ -722,7 +722,7 @@ let qvarset_fn loc ei : (int, StrSet.t, StrSet.t, StrSet.t, StrSet.t) Fold.fold_
 
     (* Types *)
     f_tqvar  = (fun (_ann, v)                   -> StrSet.add v StrSet.empty);
-    f_tprim  = (fun (_ann, tyc, tyargs)         -> union_list_sset tyargs);
+    f_tprim  = (fun (_ann, _tyc, tyargs)        -> union_list_sset tyargs);
     f_tc     = (fun (_ann, tyc)                 -> tyc);
     f_tm     = (fun (_ann, e_a, e_b, ty)        -> union_list_sset [e_a; e_b; ty]);
     f_pi     = (fun (_ann, _bi, ty_a, ty_r)     -> union_list_sset [ty_a; ty_r]);

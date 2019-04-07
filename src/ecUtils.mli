@@ -109,13 +109,13 @@ module List : sig
 
   val otail : 'a list -> 'a list option
 
-  val iteri : (int -> 'a -> 'b) -> 'a list -> unit
+  val iteri : (int -> 'a -> unit) -> 'a list -> unit
 
-  val iter2i : (int -> 'a -> 'b -> 'c) -> 'a list -> 'b list -> unit
+  val iter2i : (int -> 'a -> 'b -> unit) -> 'a list -> 'b list -> unit
 
   val fusion : ('a -> 'a -> 'a) -> 'a list -> 'a list -> 'a list
 
-  val iter2o : ('a option -> 'b option -> 'c) -> 'a list -> 'b list -> unit
+  val iter2o : ('a option -> 'b option -> unit) -> 'a list -> 'b list -> unit
 
   val findopt : ('a -> bool) -> 'a list -> 'a option
 
@@ -125,13 +125,13 @@ module List : sig
 
   val uniq : 'a list -> bool
 
-  val take_n : int -> 'a list -> 'a list
+  val take_n : int -> 'a list -> 'a list * 'a list
 
   val take : int -> 'a list -> 'a list
 
   val split_n : int -> 'a list -> 'a list * 'a * 'a list
 
-  val find_split : (int -> 'a -> 'b -> 'a) -> 'a -> 'b list -> 'a
+  val find_split : ('a -> bool) -> 'a list -> 'a list * 'a * 'a list
 
   val fold_lefti : (int -> 'a -> 'b -> 'a) -> 'a -> 'b list -> 'a
 
@@ -139,15 +139,11 @@ module List : sig
 
   val create : int -> 'a -> 'a list
 
-  val find_split : ('a -> bool) -> 'a list -> 'a list * 'a * 'a list
-
   val mapi : (int -> 'a -> 'b) -> 'a list -> 'b list
 
   val map_fold : ('a -> 'b -> 'a * 'c) -> 'a -> 'b list -> 'a * 'c list
 
   val map_combine : ('a -> 'c) -> ('b -> 'd) -> 'a list -> 'b list -> ('c * 'd) list
-
-  val take_n : int -> 'a list -> 'a list * 'a list
 
   val all2 : ('a -> 'b -> bool) -> 'a list -> 'b list -> bool
 

@@ -1,3 +1,5 @@
+type ity_prim = unit
+
 (* We allow polymorphism only in inductive types, thus mirroring Why3 behavior *)
 type ity =
   (* Unificiation variables *)
@@ -41,10 +43,10 @@ module QVarSet = Set.Make(OrderedQVar)
 let rec ity_fv ity : QVarSet.t = match ity with
   | TI_Var  v        -> ity_var_fv !v
   | TI_QVar v        -> QVarSet.add v QVarSet.empty
-  | TI_Type(n, args) -> List.fold_left (fun vs ity -> QVarSet.union vs (ity_fv ity)) QVarSet.empty args
+  | TI_Type(_, args) -> List.fold_left (fun vs ity -> QVarSet.union vs (ity_fv ity)) QVarSet.empty args
 
 and ity_var_fv ity_v : QVarSet.t = match ity_v with
-  | TI_Free s   -> QVarSet.empty
+  | TI_Free _s  -> QVarSet.empty
   | TI_Link ity -> ity_fv ity
 
 let ity_instantiate ity =
@@ -77,7 +79,7 @@ let rec ity_eq ity1 ity2 = match ity1, ity2 with
   | _, _                                      -> false
 
 (* FIXME: *)
-let rec occurs t ot = ()
+let occurs _t _ot = ()
 
 (* Based on the actual Ocaml code (see okmij.org/ftp/ML/generalization.html) *)
 (* Note that the above code seems to have a bug when trying to unify !T = T *)

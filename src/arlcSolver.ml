@@ -48,7 +48,7 @@ let get_driver (cfg : Whyconf.config_prover) : Driver.driver =
     exit 1
 *)
 
-let main_solvers = ["Alt-Ergo"; "CVC4"; "Eprover"; "CVC3"; "Coq"]
+(* let main_solvers = ["Alt-Ergo"; "CVC4"; "Eprover"; "CVC3"; "Coq"] *)
 let main_solvers = ["Alt-Ergo"; "CVC4"; "Eprover"; "CVC3"]
 
 let solvers () = List.filter EcProvers.is_prover_known main_solvers
@@ -71,7 +71,7 @@ let load_decls task decl_map =
   ) task decl_map
 
 let load_axioms task axiom_map =
-  RIntMap.fold (fun n (ax_name, ax_body) task ->
+  RIntMap.fold (fun _n (ax_name, ax_body) task ->
     (* let ax_id = Decl.create_prsymbol (Ident.id_fresh (ax_name ^ "_p" ^ (string_of_int n))) in *)
     let ax_id = Decl.create_prsymbol (Ident.id_fresh (ax_name ^ "_rtype")) in
     Task.add_prop_decl task Decl.Paxiom ax_id ax_body

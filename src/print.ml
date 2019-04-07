@@ -10,7 +10,6 @@
 
 open Format
 
-open Env
 open EcLocation
 open Parsetree
 
@@ -241,7 +240,7 @@ and pp_exp  ppf e =
                           ((bi, ty) :: r, e_r)
     | _                -> ([], e)
   in
-  let pp_special_lamba ppf e =
+  let pp_special_lambda ppf e =
     let (arg_l, e_ret) = gather_lam e in
     fprintf ppf "@[<hov>(@<1>%s @[<hov 1>@[<v>%a@] @<1>%s@;@[%a@]@])@]"
       (u_sym Symbols.Lambda) (pp_list pp_pbi) arg_l (u_sym Symbols.Arrow) pp_exp e_ret
@@ -260,7 +259,7 @@ and pp_exp  ppf e =
 
   | EVar   vi                      -> fprintf ppf "%a" pp_var vi
 
-  | ELam   (bi, ty, e_i)           -> pp_special_lamba ppf e
+  | ELam   (_bi, _ty, _e_i)        -> pp_special_lambda ppf e
 
   | EApp    (e_f, e_l)             -> pp_special_app ppf e_f e_l
 
@@ -349,7 +348,7 @@ and pp_special_app ppf e_f e_l =
   in
   let detect_infix e_f e_l =
     match unloc e_f, e_l with
-    |       op, [arg_1;    arg_2] ->
+    |      _op, [arg_1;    arg_2] ->
         Option.map (fun s -> (s, arg_1, arg_2)) (is_binary_op e_f)
     | EApp (op, [arg_1]), [arg_2] ->
         Option.map (fun s -> (s, arg_1, arg_2)) (is_binary_op op)

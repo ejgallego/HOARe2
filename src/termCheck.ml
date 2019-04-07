@@ -1,4 +1,5 @@
 (* Copyright (c) 2014, The Trustees of the University of Pennsylvania
+   Copyright (c) 2018, MINES ParisTech
    All rights reserved.
 
    LICENSE: 3-clause BSD style.
@@ -31,6 +32,7 @@ let term_debug3  fi   = message 6 Opts.Termination fi
    independent matter from the rest of the tool.
 
    Polymorphism and lot of other conditions will make this checker fail.
+
 *)
 
 type rel = (int * int) list
@@ -45,7 +47,7 @@ let rel_shift n b rel =
 (* No cycles can be built for now *)
 let build_reach rel n =
   let rec build_reach_aux acc rel n =
-    let one_step = IntSet.of_list @@ map snd @@ filter (fun (x,r) -> x = n) rel in
+    let one_step = IntSet.of_list @@ map snd @@ filter (fun (x,_r) -> x = n) rel in
     let new_acc  = IntSet.union acc one_step in
     if IntSet.equal acc new_acc then
       acc
@@ -131,20 +133,20 @@ let rec term_check n rel pos e =
         let f_fn = f_rel_add rel v.v_index in
         for_all (check_branch f_fn) cases
       (* Not a variable, not adding anything then ... *)
-      | m ->
+      | _m ->
         let f_fn _ = rel in
         term_check n rel pos e_m &&
         for_all (check_branch f_fn) cases
     end
 
   (* Shouldn't be hard to enable *)
-  | EFix (bi, ty, tc, e) -> false
+  | EFix (_bi, _ty, _tc, _e) -> false
 
   in
   term_debug2 e "TermCheck for exp @[%a@] result: @[%b@]" P.pp_exp e res;
   res
 
-let check st e (pos, n_args) =
+let check _st e (pos, _n_args) =
   if Opts.comp_enabled Opts.Termination then
     (* We assume 0 to contain the recursor *)
     term_check 0 [] pos e

@@ -179,7 +179,7 @@ module Subtyping = struct
     build_ref_deq st f el er
 
   (* FIXME *)
-  let rec occurs t ot = ()
+  let occurs _t _ot = ()
 
   let rec check_subtype st (ty1 : ty) (ty2 : ty) : unit =
 
@@ -276,7 +276,7 @@ module Subtyping = struct
       *)
       check_subtype st ty1 ty2
 
-    | TPi(bi1, ty1_a, ty1_r), TPi(bi2, ty2_a, ty2_r) ->
+    | TPi(_bi1, ty1_a, ty1_r), TPi(bi2, ty2_a, ty2_r) ->
 
       check_subtype st ty2_a ty1_a;
 
@@ -304,7 +304,7 @@ module Subtyping = struct
     (* XXX TODO: Merge the two cases, we should add the refinement
        information to fo1 if present
     *)
-    | TRef(bi1, ty1, fo1), TRef(bi2, ty2, fo2)        ->
+    | TRef(_bi1, ty1, fo1), TRef(bi2, ty2, fo2)        ->
 
       check_subtype st ty1 ty2;
 
@@ -345,7 +345,7 @@ module Subtyping = struct
 
         let vref      = EB.mk_from_id ref_st bi2.b_name         in
 
-        let n_b, n_st = build_ref_deq ref_st vref ref_el ref_er in
+        let _n_b, n_st = build_ref_deq ref_st vref ref_el ref_er in
 
         let n_fo      = exp_shift 0 1 fo2                       in
 
@@ -353,7 +353,7 @@ module Subtyping = struct
       end
 
     (* REVIEW this rule, but I think it should be straightfoward *)
-    | TRef(_, ty1, fo1), _                            ->
+    | TRef(_, ty1, _fo1), _                           ->
       check_subtype st ty1 ty2
 
     | _                                               ->
@@ -372,15 +372,15 @@ module Subtyping = struct
   let rec check_app_shape ty =
     match ty_u ty with
     | TVar {contents = TV_Link ty} -> check_app_shape ty
-    | TPi(b_ty, a_ty, r_ty) -> (b_ty, a_ty, r_ty)
-    | TRef(b_ty, r_ty, _fo) -> check_app_shape r_ty
-    | _                     -> fail (new_error ty @@ WrongShape(ty, "Functional"))
+    | TPi(b_ty, a_ty, r_ty)  -> (b_ty, a_ty, r_ty)
+    | TRef(_b_ty, r_ty, _fo) -> check_app_shape r_ty
+    | _                      -> fail (new_error ty @@ WrongShape(ty, "Functional"))
 
   (* FIXME: We should also check for refined C and M types... *)
   let rec check_m_shape ty =
     match ty_u ty with
     | TVar {contents = TV_Link ty} -> check_m_shape ty
-    | TRef(b_ty, r_ty, _fo)        -> check_m_shape r_ty
+    | TRef(_b_ty, r_ty, _fo)       -> check_m_shape r_ty
     | TM(e_a, e_d, ty)             -> ty, e_a, e_d
     | _                            -> fail (new_error ty    @@ WrongShape(ty, "PMonadic"))
 
@@ -449,7 +449,7 @@ let rec type_of e_st e : ty =
   (* E.exp_sanity e_st e; *)
   let e_st     = L.uloc e_st e.L.pl_loc         in
 
-  ty_debug  e "--> @[%a@] Enter type_of: @[%10a@]" pp_tyst e_st (P.limit_boxes P.pp_exp) e; 
+  ty_debug  e "--> @[%a@] Enter type_of: @[%a@]" pp_tyst e_st (P.limit_boxes P.pp_exp) e;
   ty_debug2 e "--> @[%a@]" P.pp_env (ho_env e_st);
   incr ty_seq;
 
@@ -531,9 +531,9 @@ let rec type_of e_st e : ty =
       (* Check a single application *)
       let type_of_bin_app st f_ty e_arg =
 
-        let (b_ty, a_ty, r_ty) = check_app_shape f_ty     in
+        let (_b_ty, a_ty, r_ty) = check_app_shape f_ty    in
 
-        let arg_ty             = type_of st e_arg         in
+        let arg_ty              = type_of st e_arg        in
 
         (* Inject e_arg into arg_ty *)
         let arg_ty = ty_inj_exp e_arg arg_ty              in
@@ -686,9 +686,9 @@ let rec type_of e_st e : ty =
         let cs_name = snd p_cons             in
 
         (* Check arity of the pattern *)
-        let n_binding      = List.length p_bind                        in
-        let (cs_th, cs_ty) = Env.lookup_cons (ES.getenv b_st) cs_name  in
-        let cs_arity       = function_arity cs_ty                      in
+        let n_binding       = List.length p_bind                        in
+        let (_cs_th, cs_ty) = Env.lookup_cons (ES.getenv b_st) cs_name  in
+        let cs_arity        = function_arity cs_ty                      in
 
         if n_binding <> cs_arity then
           fail (new_error b_pat @@ WrongPattern(cs_name, cs_arity) )
@@ -775,7 +775,7 @@ let rec type_of e_st e : ty =
     (* Asynchronous Match                                              *)
     (*******************************************************************)
 
-    | EMatch (true, e_m, cases, ret_ty) ->
+    | EMatch (true, _e_m, _cases, ret_ty) ->
 
       (* Prepare for bidirectional TC *)
       let ret_ty = match ret_ty with
@@ -963,7 +963,7 @@ and rtype_of e_st e1 e2 (goal_ty : ty) =
   (* E.exp_sanity e_st e; *)
   let e_st     = L.uloc e_st e1.L.pl_loc         in
 
-  ty_debug  e_st "--> [%3d] Enter rtype_of: @[%a@] ~ @[%10a@]" !ty_seq (P.limit_boxes P.pp_exp) e1 (P.limit_boxes P.pp_exp) e2;
+  ty_debug  e_st "--> [%3d] Enter rtype_of: @[%a@] ~ @[%a@]" !ty_seq (P.limit_boxes P.pp_exp) e1 (P.limit_boxes P.pp_exp) e2;
   ty_debug2 e_st "--> @[%a@]" P.pp_env (ho_env e_st);
   incr ty_seq;
 
@@ -993,9 +993,9 @@ and rtype_of e_st e1 e2 (goal_ty : ty) =
         let cs_name = snd p_cons             in
 
         (* Check arity of the pattern *)
-        let n_binding      = List.length p_bind                        in
-        let (cs_th, cs_ty) = Env.lookup_cons (ES.getenv b_st) cs_name  in
-        let cs_arity       = function_arity cs_ty                      in
+        let n_binding       = List.length p_bind                        in
+        let (_cs_th, cs_ty) = Env.lookup_cons (ES.getenv b_st) cs_name  in
+        let cs_arity        = function_arity cs_ty                      in
 
         if n_binding <> cs_arity then
           fail (new_error b_pat @@ WrongPattern(cs_name, cs_arity) )
@@ -1121,7 +1121,7 @@ and rtype_of e_st e1 e2 (goal_ty : ty) =
   ty
 
 and wf_ann an_st ty_a =
-  let (ty, p) = ty_a                          in
+  let (ty, _p) = ty_a in
   wf_type an_st ty
 
 and wf_type ty_st ty = match ty_u ty with
@@ -1217,5 +1217,5 @@ let get_type name (program : exp) : ty =
     type_of (ES.initial name) program
   with TypeError e ->
     typing_error_pp e pp_tyerr (L.unloc e)
-  | ParseError(loc, msg) ->
+  | ParseError(_loc, msg) ->
     error_msg Opts.TypeChecker program "%s" (EcUtils.odfl "Unknown error" msg)

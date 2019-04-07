@@ -267,5 +267,5 @@ let execute_task (pi : prover_infos) task =
             let _, st =
               restartable_syscall (fun () -> Unix.waitpid [] pid)
             in
-            ignore (CP.post_wait_call pc st ());
+            ignore (CP.post_wait_call pc st ())
       done)
