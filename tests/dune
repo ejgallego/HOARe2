@@ -4,6 +4,9 @@
  (action
   (progn
    (copy arlc_fail.in %{targets})
+   ; We insert the digest of the binaries to force a rebuild of the
+   ; test cases if the binary has been modified.
+   (bash "echo \"# $(md5sum ../src/arlc.exe)\" >> %{targets}")
    (run chmod +x arlc_fail))))
 
 (rule
@@ -12,6 +15,9 @@
  (action
   (progn
    (copy ./arlc_success.in %{targets})
+   ; We insert the digest of the binaries to force a rebuild of the
+   ; test cases if the binary has been modified.
+   (bash "echo \"# $(md5sum ../src/arlc.exe)\" >> %{targets}")
    (run chmod +x ./arlc_success))))
 
 (alias

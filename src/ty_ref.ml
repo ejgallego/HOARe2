@@ -1197,25 +1197,28 @@ open Format
 open Print
 
 let pp_tyerr ppf s = match s with
-  | TypeMismatch(st, ty1, ty2) -> fprintf ppf "EEE [%3d] @[Cannot subtype @[@[%a@] to@;@[%a@]@] in env:@\n@[%a@]@]" !ty_seq pp_ty ty1 pp_ty ty2 pp_env (ho_env st)
-  | CannotApply(ty1, ty2)      -> fprintf ppf "EEE [%3d] Cannot apply %a to %a"                                     !ty_seq pp_ty ty1 pp_ty ty2
-  | MissingIdent s             -> fprintf ppf "EEE [%3d] Primitive or constructor %s not found"                     !ty_seq s
-  | CannotInfer e              -> fprintf ppf "EEE [%3d] Cannot Infer Type for @[%a@]"                              !ty_seq pp_exp e
-  | WrongShape(ty, sh)         -> fprintf ppf "EEE [%3d] Type %a has wrong shape, expected %s type"                 !ty_seq pp_ty ty sh
-  | WrongPattern(cs, n)        -> fprintf ppf "EEE [%3d] Pattern %s has wrong number of arguments, expected %d"     !ty_seq cs n
-  | WrongCoverage(cs)          -> fprintf ppf "EEE [%3d] Coverage problem in pattern matching, constructor %s"      !ty_seq cs
-  | WrongBinding e             -> fprintf ppf "EEE [%3d] Binding mode doesn't match address mode in variable %a"    !ty_seq pp_exp e
-  | WrongAssertion(ty)         -> fprintf ppf "EEE [%3d] Assertion must of type Prop but is %a"                     !ty_seq pp_ty ty
-  | AssertionFail(st, fo)      -> fprintf ppf "EEE [%3d] Couldn't prove @[%a@]@\nin env: @[%a@]"                    !ty_seq pp_exp fo pp_env (ho_env st)
-  | Termination(e)             -> fprintf ppf "EEE [%3d] Termination check on:@\n @[%a@] failed."                   !ty_seq pp_exp e
-  | PropDisabled               -> fprintf ppf "EEE [%3d] Prop is disabled for programs"                             !ty_seq
+  | TypeMismatch(st, ty1, ty2) -> fprintf ppf "Cannot subtype @[@[%a@] to@;@[%a@]@] in env:@\n@[%a@]"  pp_ty ty1 pp_ty ty2 pp_env (ho_env st)
+  | CannotApply(ty1, ty2)      -> fprintf ppf "Cannot apply %a to %a"                                  pp_ty ty1 pp_ty ty2
+  | MissingIdent s             -> fprintf ppf "Primitive or constructor %s not found"                  s
+  | CannotInfer e              -> fprintf ppf "Cannot Infer Type for @[%a@]"                           pp_exp e
+  | WrongShape(ty, sh)         -> fprintf ppf "Type %a has wrong shape, expected %s type"              pp_ty ty sh
+  | WrongPattern(cs, n)        -> fprintf ppf "Pattern %s has wrong number of arguments, expected %d"  cs n
+  | WrongCoverage(cs)          -> fprintf ppf "Coverage problem in pattern matching, constructor %s"   cs
+  | WrongBinding e             -> fprintf ppf "Binding mode doesn't match address mode in variable %a" pp_exp e
+  | WrongAssertion(ty)         -> fprintf ppf "Assertion must of type Prop but is %a"                  pp_ty ty
+  | AssertionFail(st, fo)      -> fprintf ppf "Couldn't prove @[%a@]@\nin env: @[%a@]"                 pp_exp fo pp_env (ho_env st)
+  | Termination(e)             -> fprintf ppf "Termination check on:@\n @[%a@] failed."                pp_exp e
+  | PropDisabled               -> fprintf ppf "Prop is disabled for programs"
+
+let pp_tyerr ppf s = fprintf ppf "@[<hov>[%2d]@ @[%a@]@]" !ty_seq pp_tyerr s
 
 let loci loc = L.mk_loc loc ()
 
 let get_type name (program : exp) : ty =
   try
     type_of (ES.initial name) program
-  with TypeError e ->
+  with
+  | TypeError e ->
     typing_error_pp e pp_tyerr (L.unloc e)
   | ParseError(_loc, msg) ->
     error_msg Opts.TypeChecker program "%s" (EcUtils.odfl "Unknown error" msg)

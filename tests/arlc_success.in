@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if arlc -L ../lib-common/ "$1"
+if arlc -v 0 -L ../lib-common/ "$1"
 then
     true
 else
