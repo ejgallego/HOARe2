@@ -6,11 +6,12 @@ We provide the type checker and examples used in papers:
 
 * "Higher-Order Approximate Relational Refinement Types for Mechanism
    Design and Differential Privacy"
-   (http://dl.acm.org/citation.cfm?id=2677000)
-   (http://arxiv.org/abs/1407.6845)
+   - ACM: http://dl.acm.org/citation.cfm?id=2677000
+   - ArXiV: http://arxiv.org/abs/1407.6845
 
 * "Computer-aided verification in mechanism design"
-   (http://arxiv.org/abs/1502.04052)
+   - ACM: https://dl.acm.org/citation.cfm?id=3081132
+   - ArXiV: http://arxiv.org/abs/1502.04052
 
 ## Build instructions:
 
