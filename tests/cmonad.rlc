@@ -1,7 +1,8 @@
-import "int"  "Int"  in
-import "list" "List" in
+open int.Int   in
+open list.List in
+open dp.DP     in
 
-let rec length (l : real list)
+let rec length (l : list real)
       : C int =
   match l with [C int]
   | Nil       -> cunit 0

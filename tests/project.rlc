@@ -1,5 +1,5 @@
-import "bool" "Bool" in
-import "proj" "Projs" in
+open bool.Bool  in
+open proj.Projs in
 
 (* This illustrates the problem of having first-class non-relational
    bindings *)

@@ -1,4 +1,4 @@
-import "proj" "Projs" in
+open proj.Projs in
 
 (*  *)
 let m : { r : (int * int * int) | r = (3, 3, 3) } = (3, 3, 3) in
@@ -6,4 +6,4 @@ let m : { r : (int * int * int) | r = (3, 3, 3) } = (3, 3, 3) in
 let f (x :: (int * int * int)) : { r :: (int * int * int) | r<1> = r<1> } =
   x in
 
-snd m
+snd3 m

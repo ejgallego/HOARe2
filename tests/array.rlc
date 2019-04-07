@@ -1,4 +1,4 @@
-import "map" "Map"     in
+open map.Map     in
 (* import "bag" "Bag"     in *)
 (* import "array" "Array" in *)
 

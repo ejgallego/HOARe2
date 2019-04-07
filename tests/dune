@@ -1,0 +1,91 @@
+(rule
+ (targets arlc_fail)
+ (deps (source_tree %{project_root}/lib-common/) %{bin:arlc})
+ (action
+  (progn
+   (copy arlc_fail.in %{targets})
+   (run chmod +x arlc_fail))))
+
+(rule
+ (targets ./arlc_success)
+ (deps (source_tree %{project_root}/lib-common/) %{bin:arlc})
+ (action
+  (progn
+   (copy ./arlc_success.in %{targets})
+   (run chmod +x ./arlc_success))))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_success %{dep:all.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_success %{dep:array.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_fail %{dep:binding.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_success %{dep:cmonad.rlc})))
+
+; (alias
+;  (name runtest)
+;  (action (run ./arlc_success %{dep:let.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_success %{dep:list.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_fail %{dep:loop.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_fail %{dep:match.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_success %{dep:mlet.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_success %{dep:pair.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_success %{dep:poly.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_fail %{dep:precedence.rlc})))
+
+; (alias
+;  (name runtest)
+;  (action (run ./arlc_success %{dep:project.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_success %{dep:raxiom.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_success %{dep:rel.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_success %{dep:simple.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_success %{dep:termination.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_success %{dep:tuple.rlc})))
+
+(alias
+ (name runtest)
+ (action (run ./arlc_fail %{dep:wf-ass.rlc})))

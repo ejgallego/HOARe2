@@ -42,4 +42,5 @@ install:
 script:
 - set -e
 - dune build
+- dune runtest
 - make examples

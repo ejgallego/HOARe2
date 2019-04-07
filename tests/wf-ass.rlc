@@ -1,4 +1,4 @@
-let f : float = 3.0             in
-let n : int   = 3               in
+let f : real = 3.0              in
+let n : int  = 3                in
 let t : {z :: int | f = n } = 2 in
 t

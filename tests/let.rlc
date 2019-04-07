@@ -1,11 +1,11 @@
-lprim (/\)     : Pi (x : prop).     Pi (y : prop).    prop    in
-lprim (=>)     : Pi (x : prop).     Pi (y : prop).    prop    in
-lprim (=_f)    : Pi (x : float).    Pi (y : float).   prop    in
-lprim (<=_f)   : Pi (x : float).    Pi (y : float).   prop    in
+lprim (/\)     : Pi (x : prop).     Pi (y : prop).  prop    in
+lprim (=>)     : Pi (x : prop).     Pi (y : prop).  prop    in
+lprim (=_f)    : Pi (x : real).    Pi (y : real).   prop    in
+lprim (<=_f)   : Pi (x : real).    Pi (y : real).   prop    in
 
-let eps : float = 1.0                                         in
-let del : float = 2.0                                         in
+let eps : real = 1.0                                         in
+let del : real = 2.0                                         in
 
-let rec try (x : float) : M[a,d] { r :: float | a =_f eps /\ d =_f del } =
-    munit [ float ] 3.0
+let rec try (x : real) : M[a,d] { r :: real | a =_f eps /\ d =_f del } =
+    munit [ real ] 3.0
 in try

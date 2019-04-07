@@ -1,9 +1,9 @@
-import "int"  "Int"  in
-import "list" "List" in
-import "dp"   "DP"   in
+open int.Int   in
+open list.List in
+open dp.DP     in
 
-let rec length (l1 : real list)
-               (l2 : real list)
+let rec length (l1 : list real)
+               (l2 : list real)
                { struct l2 }
       : int =
   match l2 with [int]

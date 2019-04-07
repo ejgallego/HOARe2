@@ -1,4 +1,4 @@
-import "bool" "Bool" in
+open bool.Bool in
 
 let f (x : bool) : real =
   match x with [ real ]

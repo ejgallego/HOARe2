@@ -1,11 +1,12 @@
-import "list" "List" in
+open list.List in
+open dp.DP     in
 
-let myl : { l :: real list | 1 = 1 } = Cons 1.0 Nil in
+let myl : { l :: list real | 1 = 1 } = Cons 1.0 Nil in
 
-let rec l_dup (l : int list)
+let rec l_dup (l : list int)
               {struct l}
-      : (int * int) list =
-  match l with [(int*int) list]
+      : list (int * int) =
+  match l with [list (int*int)]
   | Nil       -> Nil
   | Cons x xs -> Cons (x,x) (l_dup xs)
 

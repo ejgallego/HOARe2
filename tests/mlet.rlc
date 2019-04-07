@@ -1,4 +1,4 @@
-import "bool"    "Bool"       in
+open bool.Bool       in
 
 fun (flip : M { b :: bool | b<1> = b<2> }) ->
 

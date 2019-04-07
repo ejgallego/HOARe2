@@ -1,2 +1,2 @@
-let id : Pi (x :: {z :: float | z = 3}). float = fun (x :: float) -> x in
+let id : Pi (x :: {z :: real | z = 3.0}). real = fun (x :: real) -> x in
 id 3.0
