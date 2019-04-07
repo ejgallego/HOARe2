@@ -83,13 +83,15 @@ to your emacs to automate the mode-loading process.
 
 ### Reproducing results:
 
-For practical reasons, a couple of examples produce a .why file to be
-verified using the Why3ide.
+The provided Travis setup does provide a reproducible checking of the
+main examples, including `summarization`. Our CI setup will fail for
+any commit that breaks this.
 
-Use
+Note that the `binary` example produces .why files to be verified
+using the Why3 IDE. We hope to improve this. Use
 
 ```
-$ why3 ide -I examples $file
+$ why3 ide -I examples/popl $file
 ```
 to proceed.
 
@@ -102,12 +104,6 @@ In particular:
 - `examples/binary_vc_m_ass_0_solved.why`:
 
   This one is tricky and needs Eprover and CVC3 to check.
-
-- `examples/summarization_vc_pSig_cut_0.why`:
-
-  CVC4 can solve the file as is with a large enough timeout (90s),
-  using the split tactic in the IDE allows the goal to be solved
-  immediately.
 
 ## More about the tool
 

@@ -1,4 +1,5 @@
 (* Two-level online counter *)
+open comp.Bool          in
 open proj.Projs         in
 open nat.Nat            in
 open int.Int            in

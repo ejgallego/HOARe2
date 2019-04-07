@@ -21,11 +21,11 @@ fun (eps : { eps : real | 0.0 <=. eps } )
                  { r :: real | r<1> = r<2> })
 
     (* Verified in histrogram.rlc *)
-    (histogram : Pi (l :: { x :: real list | d_lr x<1> x<2> <=. 1.0 } ).
+    (histogram : Pi (l :: { x :: list real | d_lr x<1> x<2> <=. 1.0 } ).
                      M[ eps *. d_lr l<1> l<2> ]
-                      { r :: real list | r<1> = r<2> })
+                      { r :: list real | r<1> = r<2> })
     (* "Pure" function *)
-    (createsums : Pi (b :: real list) (h :: real list). real list)
+    (createsums : Pi (b :: list real) (h :: list real). list real)
 
 ->
 
@@ -33,25 +33,25 @@ fun (eps : { eps : real | 0.0 <=. eps } )
 let rec chunksum (togo :: { togo :: nat | togo<1> = togo<2> })
                  (q    :  nat)
                  (acc  :: { acc :: real | d_r acc<1> acc<2> <=. 1.0 } )
-                 (l    :: { l :: real list |  d_lr (Cons acc<1> l<1>) (Cons acc<2> l<2>) <=. 1.0
+                 (l    :: { l :: list real |  d_lr (Cons acc<1> l<1>) (Cons acc<2> l<2>) <=. 1.0
                                            /\ adjacent (Cons acc<1> l<1>) (Cons acc<2> l<2>) })
                  { struct l }
-               : {r :: real list | d_lr r<1> r<2> <=. d_lr l<1> l<2> +. d_r acc<1> acc<2>
+               : {r :: list real | d_lr r<1> r<2> <=. d_lr l<1> l<2> +. d_r acc<1> acc<2>
                                    /\ adjacent r<1> r<2> } =
 
-    match l with [{r :: real list |  d_lr r<1> r<2> <=. d_lr l<1> l<2> +. d_r acc<1> acc<2>
+    match l with [{r :: list real |  d_lr r<1> r<2> <=. d_lr l<1> l<2> +. d_r acc<1> acc<2>
                                   /\ adjacent r<1> r<2> }]
     | Nil       -> Cons acc Nil
     | Cons x xs ->
-      match togo with [{r :: real list |  d_lr r<1> r<2> <=. d_lr l<1> l<2> +. d_r acc<1> acc<2>
+      match togo with [{r :: list real |  d_lr r<1> r<2> <=. d_lr l<1> l<2> +. d_r acc<1> acc<2>
                                        /\ adjacent r<1> r<2> }]
       | Zero    -> Cons acc (chunksum q q x xs)
       | Succ q' -> chunksum q q' (x +. acc) xs
 in
 
 let twolevel (q : nat)
-             (l :: {l :: real list | d_lr l<1> l<2> <=. 1.0 })
-           : M [ 2.0 *. eps *. d_lr l<1> l<2> ] {r :: real list | r<1> = r<2> } =
+             (l :: {l :: list real | d_lr l<1> l<2> <=. 1.0 })
+           : M [ 2.0 *. eps *. d_lr l<1> l<2> ] {r :: list real | r<1> = r<2> } =
 
     mlet hist   = histogram l                       in
     mlet blocks = histogram (chunksum q q 0.0 l)    in
