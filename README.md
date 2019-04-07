@@ -1,5 +1,7 @@
 # Welcome to the HOARe² compiler distribution!
 
+[![Build Status](https://travis-ci.com/ejgallego/HOARe2.svg?branch=master)](https://travis-ci.com/ejgallego/HOARe2)
+
 We provide the type checker and examples used in papers:
 
 * "Higher-Order Approximate Relational Refinement Types for Mechanism
