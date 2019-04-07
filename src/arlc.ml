@@ -7,6 +7,7 @@
    See the LICENSE file for details on licensing.
 *)
 
+open Hoare2
 open EcIo
 
 (* open Eval *)
