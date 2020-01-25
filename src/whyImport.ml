@@ -15,7 +15,8 @@
 
 open Env
 
-module L  = EcLocation
+module L  = EC.Location
+module EP = EC.Provers
 module P  = Print
 module O  = Option
 module EC = Constants
@@ -212,7 +213,7 @@ let resolve_why3_theory th_i =
   | Some n -> WT.tuple_theory n
   | None   ->
     begin
-      try EcProvers.get_w3_th [fst th_i] (snd th_i)
+      try EP.get_w3_th [fst th_i] (snd th_i)
       with
         WEnv.LibraryNotFound f -> why_error _d "File not found %s" (List.nth f 0)
       (* TODO: integrate with Exn_printer *)

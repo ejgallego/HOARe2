@@ -1,7 +1,8 @@
 (library
  (name hoare2)
  (modules :standard \ arlc)
- (libraries unix menhirLib compiler-libs.common why3))
+ (libraries unix menhirLib compiler-libs.common why3 EC))
+
 
 (executable
  (public_name arlc)

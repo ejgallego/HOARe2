@@ -9,13 +9,13 @@
 *)
 
 (* -------------------------------------------------------------------- *)
-open EcLocation
-open EcUtils
+open EC.Location
+open EC.Utils
 
 open Support.Util
 
 (* -------------------------------------------------------------------- *)
-exception ParseError of EcLocation.t * string option
+exception ParseError of EC.Location.t * string option
 
 let pp_parse_error fmt msg =
   match msg with
@@ -28,7 +28,7 @@ let () =
     | ParseError (_loc, msg) -> pp_parse_error fmt msg
     | _ -> raise exn
   in
-    EcPException.register pp
+  EC.EcPException.register pp
 
 (* -------------------------------------------------------------------- *)
 

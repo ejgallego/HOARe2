@@ -12,7 +12,7 @@ open Parsetree
 open Support.Error
 open Support.Util
 
-module L    = EcLocation
+module L    = EC.Location
 module P    = Print
 module Opts = Support.Options
 

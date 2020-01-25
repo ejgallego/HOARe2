@@ -40,49 +40,50 @@ theory ARLC
   constant x2 : real
   constant xs1 : list real
   constant xs2 : list real
-  constant us : ()
+  constant ref_ : unit
   constant y1 : real
   constant y2 : real
   constant ys1 : list real
   constant ys2 : list real
-  constant us1 : ()
+  constant ref_1 : unit
   constant left1 : list real
   constant left2 : list real
   constant right1 : list real
   constant right2 : list real
-  constant us2 : ()
-  constant kut : ()
-  constant kut1 : ()
+  constant ref_2 : unit
+  constant kut : unit
+  constant kut1 : unit
   constant cleftN1 : distr (list (list real))
   constant cleftN2 : distr (list (list real))
   constant crightN1 : distr (list (list real))
   constant crightN2 : distr (list (list real))
-  axiom ax_19 : 0.000 <=. eps
-  axiom ax_17 :
+  axiom eps_rtype : 0.000 <=. eps
+  axiom split_rtype :
     forall l11:list real, l21:list real.
      adjacent l11 l21 /\ length l11 >= 2 /\ length l21 >= 2 ->
-      length (fst (split @ l11)) = div (length l11) 2 /\
-       length (snd (split @ l11)) = div (length l11) 2 /\
-        length (fst (split @ l21)) = div (length l21) 2 /\
-         length (snd (split @ l21)) = div (length l21) 2 /\
-          (d_lr (fst (split @ l11)) (fst (split @ l21)) +.
-            d_lr (snd (split @ l11)) (snd (split @ l21))) <=. d_lr l11 l21 /\
-           adjacent (fst (split @ l11)) (fst (split @ l21)) /\
-            adjacent (snd (split @ l11)) (snd (split @ l21))
-  axiom ax_16 :
+     length (fst (split @ l11)) = div (length l11) 2 /\
+     length (snd (split @ l11)) = div (length l11) 2 /\
+     length (fst (split @ l21)) = div (length l21) 2 /\
+     length (snd (split @ l21)) = div (length l21) 2 /\
+     (d_lr (fst (split @ l11)) (fst (split @ l21))
+      +. d_lr (snd (split @ l11)) (snd (split @ l21)))
+     <=. d_lr l11 l21 /\
+     adjacent (fst (split @ l11)) (fst (split @ l21)) /\
+     adjacent (snd (split @ l11)) (snd (split @ l21))
+  axiom list_sum_rtype :
     forall l11:list real, l21:list real.
      adjacent l11 l21 -> d_lr l11 l21 = d_r (list_sum @ l11) (list_sum @ l21)
-  axiom ax_14 : n >= 0
-  axiom ax_13 :
+  axiom n_rtype : n >= 0
+  axiom l_rtype :
     adjacent l1 l2 /\ length l1 = power 2 n /\ length l2 = power 2 n
-  axiom ax_10 : l1 = Cons x1 xs1 /\ l2 = Cons x2 xs2
-  axiom ax_7 : xs1 = Cons y1 ys1 /\ xs2 = Cons y2 ys2
-  axiom ax_4 :
+  axiom ref__rtype : l1 = Cons x1 xs1 /\ l2 = Cons x2 xs2
+  axiom ref__rtype1 : xs1 = Cons y1 ys1 /\ xs2 = Cons y2 ys2
+  axiom ref__rtype2 :
     (split @ l1) = (left1, right1) /\ (split @ l2) = (left2, right2)
-  axiom ax_3 : length l1 >= 2 /\ length l2 >= 2
-  axiom ax_2 :
+  axiom kut_rtype : length l1 >= 2 /\ length l2 >= 2
+  axiom kut_rtype1 :
     length left1 = div (length l1) 2 /\
-     length left2 = div (length l2) 2 /\
-      length right1 = div (length l1) 2 /\ length right2 = div (length l2) 2
+    length left2 = div (length l2) 2 /\
+    length right1 = div (length l1) 2 /\ length right2 = div (length l2) 2
   goal ty_goal : (0.000 +. (0.000 +. (0.000 +. 0.000))) <=. 0.000
 end

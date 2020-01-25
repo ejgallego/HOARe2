@@ -91,6 +91,10 @@ let opt_equal (f : 'a -> 'a -> bool) o1 o2 =
 let none = None
 let some = fun x -> Some x
 
+let is_some = function None -> false | Some _ -> true
+let is_none x = not (is_some x)
+
+
 let oiter (f : 'a -> unit) (x : 'a option) =
   match x with None -> () | Some x -> f x
 

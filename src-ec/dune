@@ -1,0 +1,4 @@
+(library
+ (name EC)
+ (libraries menhirLib why3))
+; unix menhirLib compiler-libs.common 

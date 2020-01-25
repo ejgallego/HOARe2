@@ -9,8 +9,8 @@
 *)
 
 %{
-  open EcUtils
-  open EcLocation
+  open EC.Utils
+  open EC.Location
   open Parsetree
 
   module E  = Exp
@@ -417,7 +417,7 @@ exp:
      (* Now we extend the environment for oexp *)
      let (bi, n_env)       = Env.extend id.pl_desc rel opaque ty env in
 
-     mk_loc (EcLocation.make $startpos $endpos) @@
+     mk_loc (EC.Location.make $startpos $endpos) @@
        ELet (bi, trust, ty, iexp, oexp n_env)
    }
 
@@ -439,7 +439,7 @@ exp:
      (* Now we extend the environment with the formula *)
      let (bi, n_env)       = Env.extend "kut" rel opaque cut_ty env                    in
 
-     mk_loc (EcLocation.make $startpos $endpos) @@
+     mk_loc (EC.Location.make $startpos $endpos) @@
        ELet (bi, trust, cut_ty, exp_unit, oexp n_env)
    }
 
@@ -471,16 +471,16 @@ exp:
      (* We must now introduce as many lambdas as arguments *)
      let iexp                   = fun_from_arglist fix_alist (iexp fix_b_env) in
 
-     let fix_exp = mk_loc (EcLocation.make $startpos $endpos) @@
+     let fix_exp = mk_loc (EC.Location.make $startpos $endpos) @@
        EFix (bf, ty, tc, iexp) in
 
-     mk_loc (EcLocation.make $startpos $endpos) @@
+     mk_loc (EC.Location.make $startpos $endpos) @@
        ELet (bf, None, ty, fix_exp, oexp fix_env)
    }
 
 | mt=munit e=exp
    { fun env ->
-     mk_loc (EcLocation.make $startpos $endpos) @@
+     mk_loc (EC.Location.make $startpos $endpos) @@
        EMUnit (mt, e env)
    }
 
@@ -489,7 +489,7 @@ exp:
        let (id, rel, ty) = lb env                                  in
        let (bi, n_env)   = Env.extend id.pl_desc rel true ty env   in
        let ty_ann        = Option.map (fun f -> f env) ty_ann      in
-       mk_loc (EcLocation.make $startpos $endpos) @@
+       mk_loc (EC.Location.make $startpos $endpos) @@
          EMLet (mt, bi, ty_ann, iexp env, oexp n_env)
    }
 
@@ -564,7 +564,7 @@ matchcase:
      fun env ->
        let (cs, bl)     = pat env                                              in
        let (bil, p_env) = extend_from_pat env bl                               in
-       let lpat         = mk_loc (EcLocation.make $startpos $endpos) (cs, bil) in
+       let lpat         = mk_loc (EC.Location.make $startpos $endpos) (cs, bil) in
        (lpat, pe p_env)
    }
 
@@ -739,7 +739,7 @@ aexp:
 | cid=constructor
                 { fun env ->
                       let cs = cid env in
-                      mk_loc (EcLocation.make $startpos $endpos) (ECs cs)
+                      mk_loc (EC.Location.make $startpos $endpos) (ECs cs)
                 }
 
 | l=loc(LPAREN) RPAREN { fun _ ->
@@ -767,17 +767,17 @@ aexp:
 (*                  } *)
 (* | NIL LBRACKET t=ty RBRACKET *)
 (*    { fun env -> *)
-(*      mk_loc (EcLocation.make $startpos $endpos) @@ *)
+(*      mk_loc (EC.Location.make $startpos $endpos) @@ *)
 (*        ENil (t env) *)
 (*    } *)
 (* | CONS LPAREN e1=exp COMMA e2=exp RPAREN *)
 (*    { fun env -> *)
-(*      mk_loc (EcLocation.make $startpos $endpos) @@ *)
+(*      mk_loc (EC.Location.make $startpos $endpos) @@ *)
 (*        ECons (e1 env, e2 env) *)
 (*    } *)
 (* | LPAREN e1=exp COMMA e2=exp RPAREN *)
 (*    { fun env -> *)
-(*      mk_loc (EcLocation.make $startpos $endpos) @@ *)
+(*      mk_loc (EC.Location.make $startpos $endpos) @@ *)
 (*        EPair (e1 env, e2 env) *)
 (*    } *)
 | e=paren(exp) { e }
@@ -808,7 +808,7 @@ ty:
 
 | ty_qv=TIDENT
     { fun _env ->
-      mk_loc (EcLocation.make $startpos $endpos) @@
+      mk_loc (EC.Location.make $startpos $endpos) @@
         (TQVar ty_qv, None)
     }
 
@@ -816,7 +816,7 @@ ty:
 | ty_cs=lident ty_args=list(ty)
    { fun env ->
      let ty_cons = lookup_type env ty_cs.pl_loc ty_cs.pl_desc in
-     mk_loc (EcLocation.make $startpos $endpos) @@
+     mk_loc (EC.Location.make $startpos $endpos) @@
        (TPrim (ty_cons, List.map (fun f -> f env) ty_args), None)
    }
 
@@ -826,7 +826,7 @@ ty:
     {
       fun env ->
         let args = List.map (fun x -> x env) args in
-        mk_loc (EcLocation.make $startpos $endpos) @@ (C.ty_tuple args, None)
+        mk_loc (EC.Location.make $startpos $endpos) @@ (C.ty_tuple args, None)
     }
 
 (* Parenthesis *)
@@ -969,7 +969,7 @@ __rlist1(X, S):                         (* left-recursive *)
 %inline loc(X):
 | x=X {
     { pl_desc = x;
-      pl_loc  = EcLocation.make $startpos $endpos;
+      pl_loc  = EC.Location.make $startpos $endpos;
     }
   }
 ;

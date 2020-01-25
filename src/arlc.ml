@@ -15,7 +15,7 @@ open EcIo
 open Support.Options
 open Support.Error
 
-module L = EcLocation
+module L = EC.Location
 module P = Print
 
 let outfile    = ref (None : string option)
@@ -69,8 +69,8 @@ let parse file =
   let program =
     try EcIo.parse reader
     with
-    | Parsetree.ParseError(loc, msg) -> error_msg Parser (loci loc) "%s" (EcUtils.odfl "Unknown error" msg)
-    | Parser.Error                   -> error_msg Parser (loci (EcLocation.of_lexbuf (lexbuf reader))) "Parse Error"
+    | Parsetree.ParseError(loc, msg) -> error_msg Parser (loci loc) "%s" (EC.Utils.odfl "Unknown error" msg)
+    | Parser.Error                   -> error_msg Parser (loci (L.of_lexbuf (lexbuf reader))) "Parse Error"
   in
   program
 

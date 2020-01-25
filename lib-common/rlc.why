@@ -1,7 +1,7 @@
 (* Our rlc core theory *)
 theory Distr
 
-  use import HighOrd
+  use HighOrd
 
   type distr 'a
 
@@ -17,7 +17,7 @@ theory Distr
   predicate tuple5_skeleton (t1 t2 : ('a, 'b, 'c, 'd, 'e))     = true
   predicate tuple6_skeleton (t1 t2 : ('a, 'b, 'c, 'd, 'e, 'f)) = true
 
-  use import bool.Bool
+  use bool.Bool
 
   predicate bool_skeleton (b1 b2 : bool) = match b1,b2 with
     | True,  True  -> true

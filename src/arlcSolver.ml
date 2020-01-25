@@ -51,7 +51,7 @@ let get_driver (cfg : Whyconf.config_prover) : Driver.driver =
 (* let main_solvers = ["Alt-Ergo"; "CVC4"; "Eprover"; "CVC3"; "Coq"] *)
 let main_solvers = ["Alt-Ergo"; "CVC4"; "Eprover"; "CVC3"]
 
-let solvers () = List.filter EcProvers.is_prover_known main_solvers
+let solvers () = List.filter EC.Provers.is_prover_known main_solvers
 
 (* let s_cfg  = List.map get_solver solvers *)
 (* let s_drv  = List.map get_driver s_cfg *)
@@ -92,12 +92,18 @@ let write_task_file file theories ths task =
   Format.fprintf ofmt "end\n";
   close_out oc
 
+let coq : Whyconf.prover =
+  { prover_name = "Coq"
+  ; prover_version = "8.9"
+  ; prover_altern = ""
+  }
+
 let write_coq_file file task =
-  if EcProvers.is_prover_known "Coq" then
+  if EC.Provers.is_prover_known "Coq" then
     let oc         = open_out (file ^ ".v")             in
     let ofmt       = Format.formatter_of_out_channel oc in
-    let (_, _, dr) = EcProvers.get_prover "Coq"         in
-    Driver.print_task dr ofmt task
+    let driver     = EC.Provers.get_driver coq          in
+    Driver.print_task driver ofmt task
   else
     why_warning dummy_e "Trying to print Coq file, but it is not supported by Why3."
 
@@ -119,7 +125,7 @@ let post ext theories decls axioms ass loc = try
   (* Relegate the assertion to a why file *)
   | Some name ->
     write_task_file name theories (Task.used_theories task) task;
-    Some (true, "toFile")
+    Some (true, ["toFile"])
 
   | None ->
 
@@ -127,19 +133,18 @@ let post ext theories decls axioms ass loc = try
     write_task_file "arlc_current.why" theories (Task.used_theories task) task;
     why_debug3 dummy_e "!S! calling all the solvers....";
 
-    let open EcProvers in
+    let open EC.Provers in
 
-    let arlc_pi = {
-      pr_maxprocs  = 2;
-      pr_provers   = solvers ();
-      pr_timelimit = !tlimit;
-      pr_wrapper   = None;
-    } in
+    let arlc_pi = { dft_prover_infos with
+                    pr_maxprocs  = 2
+                  ; pr_provers   = solvers ()
+                  ; pr_timelimit = !tlimit
+                  } in
 
-    let res = EcProvers.execute_task arlc_pi task in
+    let res = EC.Provers.execute_task arlc_pi task in
 
     if Option.is_none res then begin
-      let (l,c) = loc.EcLocation.loc_start in
+      let (l,c) = loc.EC.Location.loc_start in
       let name = "fail_ass_" ^ (string_of_int l) ^ "_" ^ (string_of_int c) in
       write_coq_file name task
     end;

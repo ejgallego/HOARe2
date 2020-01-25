@@ -7,7 +7,7 @@
 *)
 
 open Parsetree
-open EcLocation
+open EC.Location
 open Constants
 
 (* Miscellanous random bits for dealing with expressions, most of it will
@@ -187,9 +187,9 @@ module Builders = struct
 
   (* EG: We could improve this *)
   let mk_app_list e largs =
-    EcLocation.mk_loc e.pl_loc @@ EApp(e, largs)
+    EC.Location.mk_loc e.pl_loc @@ EApp(e, largs)
 
-  let mk_exp_tuple l n e = mk_app_list (EcLocation.mk_loc l (ECs (tuple_th n, "Tuple"  ^ (string_of_int n)))) e
+  let mk_exp_tuple l n e = mk_app_list (EC.Location.mk_loc l (ECs (tuple_th n, "Tuple"  ^ (string_of_int n)))) e
 
   let mk_exp_bin st op e1 e2 =
     let op_exp = mk_from_id st op                        in

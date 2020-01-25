@@ -1,13 +1,13 @@
 theory SmtHints
 
-  use import int.Int
-  use import int.Power
-  use import int.ComputerDivision
+  use int.Int
+  use int.Power
+  use int.ComputerDivision
 
-  use import real.RealInfix
+  use real.RealInfix
 
-  use import list.List
-  use import list.Length
+  use list.List
+  use list.Length
 
   lemma length_pos : forall l1 ll1 : list real, x1 : real.
         l1 = Cons x1 ll1 ->

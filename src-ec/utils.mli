@@ -59,10 +59,13 @@ type 'a cmp = 'a -> 'a -> int
 
 val pair_equal : 'a eq -> 'b eq -> ('a * 'b) eq
 val opt_equal  : 'a eq -> 'a option eq
- 
+
 (* -------------------------------------------------------------------- *)
 val none : 'a option
 val some : 'a -> 'a option
+
+val is_some : 'a option -> bool
+val is_none : 'a option -> bool
 
 (* -------------------------------------------------------------------- *)
 val oiter      : ('a -> unit) -> 'a option -> unit

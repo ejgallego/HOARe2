@@ -18,10 +18,10 @@ theory Nat
       | Succ x' -> Succ (nat_plus x' y)
      end
 
-     use import int.Int
+     use int.Int
 
-     use import real.RealInfix
-     use import real.FromInt
+     use real.RealInfix
+     use real.FromInt
 
      function nat_to_int (x : nat) : int = match x with
       | Zero    -> 0
@@ -47,8 +47,8 @@ theory Nat
      lemma conv_nat_int_nat : forall x : nat.
       (int_to_nat (nat_to_int x)) = x
 
-     use import int.Int
-     use import real.RealInfix
+     use int.Int
+     use real.RealInfix
 
      (* Axioms about nat *)
      lemma nat_int_pos  : forall n : nat. 0 <= nat_to_int n

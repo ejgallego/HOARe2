@@ -90,10 +90,8 @@ module Options = struct
     let (_, l) = List.partition (fun c -> c = comp) !debug_options.components in
     debug_options := { !debug_options with components = l }
 
-  let default_why_path = ["./"]
-  let why_path = ref default_why_path
-
-  let add_why_path path = why_path := path :: !why_path
+  let add_why_path path =
+    EC.Provers.extra_why_path := path :: !EC.Provers.extra_why_path
 
 end
 
@@ -138,7 +136,7 @@ module Error = struct
     | 7 -> "D4"
     | _ -> ""
 
-  module L = EcLocation
+  module L = EC.Location
 
   (* Default print function *)
   let message level component t =

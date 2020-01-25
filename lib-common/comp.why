@@ -2,8 +2,8 @@ theory Bool
 
   (* ******************************************************************** *)
   (* Extra comparison facts. *)
-  use import real.RealInfix
-  use import bool.Bool
+  use real.RealInfix
+  use bool.Bool
 
   function eqp (r1 r2 : 'a) : bool = r1 = r2
 

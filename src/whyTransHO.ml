@@ -19,15 +19,15 @@ module T   = Why3.Term
 module Ty  = Why3.Ty
 
 module DT = Why3.Dterm
-(* module WC = Why3.Coercion *)
+module WC = Why3.Coercion
+
+module L  = EC.Location
+module P  = Print
 
 module E  = Exp
 module EB = E.Builders
 module EC = Constants
 module ES = Exp.ExpState
-
-module L  = EcLocation
-module P  = Print
 
 (* Printing routines *)
 open Format
@@ -258,13 +258,14 @@ let rec rtype_to_why3 (ty : ty) : Ty.ty = match ty_u ty with
 (* Term translation                                                       *)
 
 let const_to_number c = match c with
-  | ECInt  i -> Why3.Number.ConstInt (Why3.Number.int_const_dec (string_of_int i))
+  | ECInt  i ->
+    Why3.Number.ConstInt (Why3.Number.int_const_of_int i), DT.dty_int
   (* We use floats, Why is more accurate... *)
   | ECReal f ->
     let (f,i) = modf f                                   in
     let is    = Printf.sprintf "%.0f" i                  in
     let fs    = String.sub (Printf.sprintf "%.3f" f) 2 3 in
-    Why3.Number.ConstReal (Why3.Number.real_const_dec is fs None)
+    Why3.Number.(ConstReal { rc_negative = false; rc_abs = real_const_dec is fs None}), DT.dty_real
 
 (* Special primitives *)
 let why3_lprim = [
@@ -317,9 +318,9 @@ let expect_lamba _wst (e : exp) : (binder_info * ty * exp) =
 let rec exp_to_dterm wst (e : exp) =
   (* why_debug e "Enter exp_to_dterm @[%a@]" P.pp_exp e; *)
   let open DT in
-  let dt = dterm in
+  let dt = dterm WC.empty in
   match L.unloc e with
-  | EConst c        -> dt @@ DTconst (const_to_number c)
+  | EConst c        -> dt @@ DTconst (fst @@ const_to_number c, snd @@ const_to_number c)
   | EPrim  p        -> dt @@ t_prim (locate_prim p)
   | ECs    cs       -> dt @@ t_prim (locate_prim cs)
   | EVar v          -> let tm = get_var wst v   in
@@ -354,7 +355,7 @@ let rec exp_to_dterm wst (e : exp) =
       | None ->
         let w_f    = exp_to_dterm wst e_f            in
         let w_l    = List.map (exp_to_dterm wst) e_l in
-        List.fold_left (fun f a -> DT.dterm (DT.DTfapp(f, a))) w_f w_l
+        List.fold_left (fun f a -> DT.dterm Why3.Coercion.empty (DT.DTfapp(f, a))) w_f w_l
     end
   | EMUnit (PMonad, e_m) ->
     let munit_prim = L.mk_loc e.L.pl_loc @@ EPrim(("rlc", "Distr"), "munit")  in
