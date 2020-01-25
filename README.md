@@ -17,17 +17,14 @@ We provide the type checker and examples used in papers:
 
 We recommend using OPAM 2.0 to install the tool, you'll need a recent
 repository and standard gnu tools (gcc and make). Note the concrete
-versions needed, in particular you need why3 0.87.3. In case of doubt,
+versions needed, in particular you need why3 1.2.1. In case of doubt,
 the `.travis.yml` file should contain reproducible build
 instructions. A typical workflow is:
 
 ```
-$ opam update
-$ opam switch create 4.05.0
-$ eval $(opam env)
-$ opam install dune why3.0.87.3 menhir alt-ergo coq
+$ opam install --deps-only -d -t .
 $ why3 config --detect
-$ make
+$ dune build
 $ dune exec -- arlc -L examples/popl/ examples/popl/dummysum.rlc
 ```
 
@@ -38,21 +35,20 @@ We recommend the following set:
 
 ```
 $ why3 config --detect
-Found prover Alt-Ergo version 1.00.prv, OK.
-Found prover CVC4 version 1.4, OK.
-Found prover CVC4 version 1.4 (alternative: noBV)
+Found prover Alt-Ergo version 2.3.0, OK.
+Found prover CVC4 version 1.6, OK.
+Found prover CVC4 version 1.4
 Found prover CVC3 version 2.4.1, OK.
-Found prover Eprover version 1.8-001, OK.
-Found prover Z3 version 4.3.1 (old version, please consider upgrading).
+Found prover Eprover version 2.3, OK.
 ```
 
 You may be lucky with other versions. Links:
 
 - Alt-Ergo: (http://alt-ergo.ocamlpro.com/)
-- CVC3 2.4.1 and CVC4 1.4:
+- CVC3 2.4.1 and CVC4 1.4 / 1.6:
   http://www.cs.nyu.edu/acsys/cvc3/
   http://cvc4.cs.nyu.edu/web/
-- Eprover 1.8:
+- Eprover 2.0:
   http://wwwlehre.dhbw-stuttgart.de/~sschulz/E/E.html
 
 ### Running HOARe²:
