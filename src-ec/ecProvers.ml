@@ -136,6 +136,8 @@ type why3prover = {
   pr_driver  : Why3.Driver.driver;
 }
 
+let extra_why_path = ref []
+
 module Config : sig
   val load :
        ?ovrevict:string list
@@ -148,6 +150,7 @@ module Config : sig
   val get      : Whyconf.prover -> Driver.driver
 
 end = struct
+
   let theconfig  : (Whyconf.config option) ref = ref None
   let themain    : (Whyconf.main   option) ref = ref None
   let thew3_env  : (Env.env        option) ref = ref None
@@ -160,8 +163,7 @@ end = struct
 
       Whyconf.load_plugins main;
 
-      let w3_env  = Env.create_env @@ (Whyconf.loadpath main) @
-                                      !Support.Options.why_path in
+      let w3_env  = Env.create_env @@ (Whyconf.loadpath main) @ !extra_why_path in
 
       let load_prover p config =
         let name    = p.Whyconf.prover_name in

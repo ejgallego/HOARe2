@@ -1,8 +1,8 @@
 {
-  open EcUtils
+  open EC.EcUtils
   open Parser
 
-  module L = EcLocation
+  module L = EC.EcLocation
 
   exception LexicalError of L.t option * string
 

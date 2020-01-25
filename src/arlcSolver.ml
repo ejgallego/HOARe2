@@ -51,7 +51,7 @@ let get_driver (cfg : Whyconf.config_prover) : Driver.driver =
 (* let main_solvers = ["Alt-Ergo"; "CVC4"; "Eprover"; "CVC3"; "Coq"] *)
 let main_solvers = ["Alt-Ergo"; "CVC4"; "Eprover"; "CVC3"]
 
-let solvers () = List.filter EcProvers.is_prover_known main_solvers
+let solvers () = List.filter EC.EcProvers.is_prover_known main_solvers
 
 (* let s_cfg  = List.map get_solver solvers *)
 (* let s_drv  = List.map get_driver s_cfg *)
@@ -99,10 +99,10 @@ let coq : Whyconf.prover =
   }
 
 let write_coq_file file task =
-  if EcProvers.is_prover_known "Coq" then
+  if EC.EcProvers.is_prover_known "Coq" then
     let oc         = open_out (file ^ ".v")             in
     let ofmt       = Format.formatter_of_out_channel oc in
-    let driver     = EcProvers.get_driver coq           in
+    let driver     = EC.EcProvers.get_driver coq           in
     Driver.print_task driver ofmt task
   else
     why_warning dummy_e "Trying to print Coq file, but it is not supported by Why3."
@@ -133,7 +133,7 @@ let post ext theories decls axioms ass loc = try
     write_task_file "arlc_current.why" theories (Task.used_theories task) task;
     why_debug3 dummy_e "!S! calling all the solvers....";
 
-    let open EcProvers in
+    let open EC.EcProvers in
 
     let arlc_pi = { dft_prover_infos with
                     pr_maxprocs  = 2
@@ -141,10 +141,10 @@ let post ext theories decls axioms ass loc = try
                   ; pr_timelimit = !tlimit
                   } in
 
-    let res = EcProvers.execute_task arlc_pi task in
+    let res = EC.EcProvers.execute_task arlc_pi task in
 
     if Option.is_none res then begin
-      let (l,c) = loc.EcLocation.loc_start in
+      let (l,c) = loc.EC.EcLocation.loc_start in
       let name = "fail_ass_" ^ (string_of_int l) ^ "_" ^ (string_of_int c) in
       write_coq_file name task
     end;

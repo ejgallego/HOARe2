@@ -17,13 +17,13 @@ module D  = Why3.Decl
 module T  = Why3.Term
 module Ty = Why3.Ty
 
+module L  = EC.EcLocation
+module P  = Print
+
 module E  = Exp
 module EB = E.Builders
 module EC = Constants
 module ES = Exp.ExpState
-
-module L  = EcLocation
-module P  = Print
 
 open Support.Error
 module Opts = Support.Options

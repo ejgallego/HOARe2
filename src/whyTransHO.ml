@@ -21,13 +21,13 @@ module Ty  = Why3.Ty
 module DT = Why3.Dterm
 module WC = Why3.Coercion
 
+module L  = EC.EcLocation
+module P  = Print
+
 module E  = Exp
 module EB = E.Builders
 module EC = Constants
 module ES = Exp.ExpState
-
-module L  = EcLocation
-module P  = Print
 
 (* Printing routines *)
 open Format

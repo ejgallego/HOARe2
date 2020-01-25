@@ -66,6 +66,8 @@ val parse_prover_name : string -> parsed_pname
 val is_prover_known   : string -> bool
 
 (* -------------------------------------------------------------------- *)
+val extra_why_path : string list ref
+
 val initialize :
      ?ovrevict:string list
   -> ?why3conf:string

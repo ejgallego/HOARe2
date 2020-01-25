@@ -12,7 +12,8 @@ open Parsetree
 open Support.Error
 open Support.Util
 
-module L    = EcLocation
+module L    = EC.EcLocation
+module EU   = EC.EcUtils
 
 module E    = Exp
 module ES   = E.ExpState
@@ -1221,4 +1222,4 @@ let get_type name (program : exp) : ty =
   | TypeError e ->
     typing_error_pp e pp_tyerr (L.unloc e)
   | ParseError(_loc, msg) ->
-    error_msg Opts.TypeChecker program "%s" (EcUtils.odfl "Unknown error" msg)
+    error_msg Opts.TypeChecker program "%s" (EU.odfl "Unknown error" msg)

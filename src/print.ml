@@ -10,7 +10,7 @@
 
 open Format
 
-open EcLocation
+open EC.EcLocation
 open Parsetree
 
 open Support.Options
