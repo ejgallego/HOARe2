@@ -7,7 +7,7 @@
  * -------------------------------------------------------------------- *)
 
 (* -------------------------------------------------------------------- *)
-open EcUtils
+open Utils
 open Why3
 (* open EcSymbols *)
 
@@ -201,7 +201,7 @@ end = struct
     end
 
   let w3_env () =
-    load (); EcUtils.oget !thew3_env
+    load (); Utils.oget !thew3_env
 
   let provers () =
     load (); !theprovers
@@ -372,7 +372,7 @@ let run_prover
 =
   let sigdef = Sys.signal Sys.sigint Sys.Signal_ignore in
 
-  EcUtils.try_finally (fun () ->
+  Utils.try_finally (fun () ->
     try
       let { pr_config = pr; pr_driver = dr; _ } = get_prover prover in
       let pc =
@@ -392,10 +392,10 @@ let run_prover
 
         let _getenv s = try Some (Sys.getenv s) with Not_found -> None in
 
-        if EcUtils.is_some (_getenv "EC_SMT_DEBUG") then begin
+        if Utils.is_some (_getenv "EC_SMT_DEBUG") then begin
           let stream = open_out (Printf.sprintf "%s.smt" prover) in
           let fmt = Format.formatter_of_out_channel stream in
-          EcUtils.try_finally
+          Utils.try_finally
             (fun () -> Format.fprintf fmt "%a@." (Driver.print_task dr) task)
             (fun () -> close_out stream)
         end;
@@ -440,7 +440,7 @@ let execute_task ?(notify : notify option) (pi : prover_infos) task =
         |> oiter (fun (prover, pc) -> pcs.(i) <- Some (prover, pc))
   in
 
-  EcUtils.try_finally
+  Utils.try_finally
     (fun () ->
       (* Start the provers, at most maxprocs run in the same time *)
       let pqueue = Queue.create () in

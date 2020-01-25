@@ -15,8 +15,8 @@
 
 open Env
 
-module L  = EC.EcLocation
-module EP = EC.EcProvers
+module L  = EC.Location
+module EP = EC.Provers
 module P  = Print
 module O  = Option
 module EC = Constants

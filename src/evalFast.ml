@@ -8,7 +8,7 @@
 *)
 
 open Parsetree
-open EC.EcLocation
+open EC.Location
 
 module E    = Exp
 module ES   = E.ExpState

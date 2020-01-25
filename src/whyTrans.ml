@@ -17,7 +17,7 @@ module D  = Why3.Decl
 module T  = Why3.Term
 module Ty = Why3.Ty
 
-module L  = EC.EcLocation
+module L  = EC.Location
 module P  = Print
 
 module E  = Exp

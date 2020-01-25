@@ -21,7 +21,7 @@ module Ty  = Why3.Ty
 module DT = Why3.Dterm
 module WC = Why3.Coercion
 
-module L  = EC.EcLocation
+module L  = EC.Location
 module P  = Print
 
 module E  = Exp

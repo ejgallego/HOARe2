@@ -9,13 +9,13 @@
 *)
 
 (* -------------------------------------------------------------------- *)
-open EC.EcLocation
-open EC.EcUtils
+open EC.Location
+open EC.Utils
 
 open Support.Util
 
 (* -------------------------------------------------------------------- *)
-exception ParseError of EC.EcLocation.t * string option
+exception ParseError of EC.Location.t * string option
 
 let pp_parse_error fmt msg =
   match msg with

@@ -91,7 +91,7 @@ module Options = struct
     debug_options := { !debug_options with components = l }
 
   let add_why_path path =
-    EC.EcProvers.extra_why_path := path :: !EC.EcProvers.extra_why_path
+    EC.Provers.extra_why_path := path :: !EC.Provers.extra_why_path
 
 end
 
@@ -136,7 +136,7 @@ module Error = struct
     | 7 -> "D4"
     | _ -> ""
 
-  module L = EC.EcLocation
+  module L = EC.Location
 
   (* Default print function *)
   let message level component t =

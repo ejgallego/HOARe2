@@ -1,5 +1,5 @@
 (* -------------------------------------------------------------------- *)
-open EC.EcUtils
+open EC.Utils
 
 module P = Parser
 module L = Lexing

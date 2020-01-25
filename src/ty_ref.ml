@@ -12,8 +12,8 @@ open Parsetree
 open Support.Error
 open Support.Util
 
-module L    = EC.EcLocation
-module EU   = EC.EcUtils
+module L    = EC.Location
+module EU   = EC.Utils
 
 module E    = Exp
 module ES   = E.ExpState

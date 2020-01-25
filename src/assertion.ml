@@ -13,7 +13,7 @@ open Parsetree
 open Support.Error
 open Support.Util
 
-module L    = EC.EcLocation
+module L    = EC.Location
 module E    = Exp
 module EC   = Constants
 module EB   = E.Builders

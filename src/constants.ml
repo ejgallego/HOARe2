@@ -6,7 +6,7 @@
    See the LICENSE file for details on licensing.
 *)
 open Parsetree
-open EC.EcLocation
+open EC.Location
 
 (* Information about builtins theories, must be kept in sync with Why3 *)
 let builtin_th = (""    , "BuiltIn"   )
